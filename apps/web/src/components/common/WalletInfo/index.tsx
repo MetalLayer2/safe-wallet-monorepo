@@ -11,6 +11,7 @@ import { selectChainById } from '@/store/chainsSlice'
 import madProps from '@/utils/mad-props'
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew'
 import useChainId from '@/hooks/useChainId'
+import { useAuthLogoutV1Mutation } from '@safe-global/store/gateway/AUTO_GENERATED/auth'
 
 type WalletInfoProps = {
   wallet: ConnectedWallet
@@ -22,6 +23,7 @@ type WalletInfoProps = {
 }
 
 export const WalletInfo = ({ wallet, balance, currentChainId, onboard, addressBook, handleClose }: WalletInfoProps) => {
+  const [authLogout] = useAuthLogoutV1Mutation()
   const chainInfo = useAppSelector((state) => selectChainById(state, wallet.chainId))
   const prefix = chainInfo?.shortName
 
@@ -36,6 +38,7 @@ export const WalletInfo = ({ wallet, balance, currentChainId, onboard, addressBo
     onboard?.disconnectWallet({
       label: wallet.label,
     })
+    authLogout()
 
     handleClose()
   }

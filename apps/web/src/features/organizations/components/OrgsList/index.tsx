@@ -105,26 +105,26 @@ const OrgsList = () => {
           <AddOrgButton disabled={!isUserSignedIn} />
         </Box>
 
-        {isUserSignedIn &&
-          pendingInvites.length > 0 &&
-          pendingInvites.map((invitingOrg: GetOrganizationResponse) => (
-            <OrgListInvite key={invitingOrg.id} org={invitingOrg} />
-          ))}
-
-        {isUserSignedIn && organizations ? (
-          <Grid2 container spacing={2} flexWrap="wrap">
-            {activeOrganizations.length > 0 ? (
-              activeOrganizations.map((org) => (
-                <Grid2 size={6} key={org.name}>
-                  <OrgsCard org={org} />
-                </Grid2>
-              ))
-            ) : (
-              <NoOrgsState />
-            )}
-          </Grid2>
-        ) : (
+        {!isUserSignedIn ? (
           <EmptyState />
+        ) : (
+          <>
+            {pendingInvites.length > 0 &&
+              pendingInvites.map((invitingOrg: GetOrganizationResponse) => (
+                <OrgListInvite key={invitingOrg.id} org={invitingOrg} />
+              ))}
+            <Grid2 container spacing={2} flexWrap="wrap">
+              {activeOrganizations.length > 0 ? (
+                activeOrganizations.map((org) => (
+                  <Grid2 size={6} key={org.name}>
+                    <OrgsCard org={org} />
+                  </Grid2>
+                ))
+              ) : (
+                <NoOrgsState />
+              )}
+            </Grid2>
+          </>
         )}
       </Box>
     </Box>
