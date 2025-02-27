@@ -30,7 +30,8 @@
     "static-serve": "yarn build && yarn serve",
     "prepare": "husky",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build --quiet"
+    "build-storybook": "storybook build --quiet",
+    "integrity": "node scripts/integrity.cjs"
   },
   "engines": {
     "node": ">=18"
@@ -141,6 +142,7 @@
     "eslint-plugin-storybook": "^0.11.0",
     "eslint-plugin-unused-imports": "^4.1.4",
     "fake-indexeddb": "^4.0.2",
+    "fast-xml-parser": "^5.0.8",
     "gray-matter": "^4.0.3",
     "husky": "^9.0.11",
     "jest": "^29.7.0",

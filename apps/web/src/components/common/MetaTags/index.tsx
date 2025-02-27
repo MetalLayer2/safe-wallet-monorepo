@@ -1,5 +1,5 @@
 import { BRAND_NAME, IS_PRODUCTION } from '@/config/constants'
-import { ContentSecurityPolicy, StrictTransportSecurity } from '@/config/securityHeaders'
+import { StrictTransportSecurity } from '@/config/securityHeaders'
 import lightPalette from '@/components/theme/lightPalette'
 import darkPalette from '@/components/theme/darkPalette'
 
@@ -21,8 +21,6 @@ const MetaTags = ({ prefetchUrl }: { prefetchUrl: string }) => (
     <meta name="twitter:description" content={descriptionText} />
     <meta name="twitter:image" content="https://app.safe.global/images/social-share.png" />
 
-    {/* CSP */}
-    <meta httpEquiv="Content-Security-Policy" content={ContentSecurityPolicy} />
     {IS_PRODUCTION && <meta httpEquiv="Strict-Transport-Security" content={StrictTransportSecurity} />}
 
     {/* Prefetch the backend domain */}
