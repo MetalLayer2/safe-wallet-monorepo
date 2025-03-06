@@ -14,6 +14,7 @@ type sendSignedTxParameters = {
   protocolKit: Safe
   wallet: ethers.Wallet
   apiKit: SafeApiKit
+  activeSafe: SafeInfo
 }
 
 export type signTxParams = {
@@ -51,17 +52,23 @@ export const signTx = async ({
   if (!safeTx) {
     throw new Error('Safe transaction not found')
   }
+  try {
+    const safeTransactionHash = await sendSignedTx({
+      safeTx,
+      signatures,
+      protocolKit,
+      wallet,
+      apiKit,
+      activeSafe,
+    })
 
-  const safeTransactionHash = await sendSignedTx({
-    safeTx,
-    signatures,
-    protocolKit,
-    wallet,
-    apiKit,
-  })
-  const signedTransaction = await apiKit.getTransaction(safeTransactionHash)
+    const signedTransaction = await apiKit.getTransaction(safeTransactionHash)
 
-  return signedTransaction
+    return signedTransaction
+  } catch (err) {
+    console.log(err)
+    throw err
+  }
 }
 
 export const sendSignedTx = async ({
@@ -70,9 +77,11 @@ export const sendSignedTx = async ({
   protocolKit,
   wallet,
   apiKit,
+  activeSafe,
 }: sendSignedTxParameters): Promise<string> => {
+  console.log('singing')
   const signedSafeTx = await protocolKit.signTransaction(safeTx, SigningMethod.ETH_SIGN)
-
+  console.log('signed Safe Tx', signedSafeTx)
   Object.entries(signatures).forEach(([signer, data]) => {
     signedSafeTx.addSignature({
       signer,
@@ -82,11 +91,20 @@ export const sendSignedTx = async ({
       isContractSignature: false,
     })
   })
-  const safeTransactionHash = await protocolKit.getTransactionHash(signedSafeTx)
-
+  const safeTransactionHash = await protocolKit.getTransactionHash(safeTx)
+  console.log('safeTransactionHash', safeTransactionHash)
   const signature = signedSafeTx.getSignature(wallet.address) as EthSafeSignature
-
+  console.log('signature', signature)
+  await apiKit.proposeTransaction({
+    safeAddress: activeSafe.address,
+    safeTransactionData: safeTx.data,
+    safeTxHash: safeTransactionHash,
+    senderAddress: wallet.address,
+    senderSignature: buildSignatureBytes([signature]),
+  })
+  console.log('proposeTransaction done')
   await apiKit.confirmTransaction(safeTransactionHash, buildSignatureBytes([signature]))
+  console.log('confirmation done')
 
   return safeTransactionHash
 }

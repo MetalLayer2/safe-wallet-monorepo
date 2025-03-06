@@ -48,6 +48,8 @@ function ConfirmTxContainer() {
 
   const isExpired = 'status' in data.txInfo && data.txInfo.status === 'expired'
 
+  console.log('data of tx:', data)
+
   return (
     <View flex={1}>
       <ScrollView onScroll={handleScroll}>
