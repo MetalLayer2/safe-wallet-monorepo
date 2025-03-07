@@ -355,10 +355,11 @@ export function setInputValue(value) {
     cy.get('input')
       .should('be.visible')
       .clear()
-      .type('{selectall}{backspace}')
+      .wait(1000)
+      .clear()
       .then(($input) => {
         if ($input.val() !== '') {
-          cy.wrap($input).clear().type('{selectall}{backspace}');
+          cy.wrap($input).clear();
         }
       })
       .should('have.value', '')
