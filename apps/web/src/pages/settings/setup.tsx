@@ -11,6 +11,7 @@ import ProposersList from 'src/components/settings/ProposersList'
 import SpendingLimits from '@/components/settings/SpendingLimits'
 import { BRAND_NAME } from '@/config/constants'
 import { NestedSafesList } from '@/components/settings/NestedSafesList'
+import PoliciesSettings from '@/features/policies/components/PoliciesSettings'
 
 const Setup: NextPage = () => {
   const { safe, safeLoaded } = useSafeInfo()
@@ -67,6 +68,8 @@ const Setup: NextPage = () => {
 
           <RequiredConfirmation threshold={threshold} owners={ownerLength} />
         </Paper>
+
+        <PoliciesSettings />
 
         <SpendingLimits />
 
