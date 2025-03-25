@@ -1,0 +1,10 @@
+{
+  "safePolicyGuard": "0x4DeFDB4c49a24179d9575B8476b10a20Dd9B814C",
+  "policies": {
+    "allowPolicy": "0xc4BC82986858dB61cd7b56BE6864654D91becd4A",
+    "coSignerPolicy": "0x29Fb2edD1A8a2603fE0a34eA688aA8B7CD2b1Fc9",
+    "erc20TransferPolicy": "0x6342AA56514238cA08A348E3E82cE0143a3D4E0f",
+    "multiSendPolicy": "0x3847050d3e2c575cb232BC4844ebc186778D03D0",
+    "nativeTransferPolicy": "0xcbd3923Bd225Bf715b28e5355FaD55B9969c83f0"
+  }
+}
