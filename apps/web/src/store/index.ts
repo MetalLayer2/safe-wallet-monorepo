@@ -1,3 +1,4 @@
+
 import {
   configureStore,
   combineReducers,
@@ -46,6 +47,7 @@ const rootReducer = combineReducers({
   [slices.cookiesAndTermsSlice.name]: slices.cookiesAndTermsSlice.reducer,
   [slices.popupSlice.name]: slices.popupSlice.reducer,
   [slices.spendingLimitSlice.name]: slices.spendingLimitSlice.reducer,
+  [slices.policiesSlice.name]: slices.policiesSlice.reducer,
   [slices.safeAppsSlice.name]: slices.safeAppsSlice.reducer,
   [slices.safeMessagesSlice.name]: slices.safeMessagesSlice.reducer,
   [slices.pendingSafeMessagesSlice.name]: slices.pendingSafeMessagesSlice.reducer,
