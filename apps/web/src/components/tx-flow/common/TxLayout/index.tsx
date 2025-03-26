@@ -6,13 +6,11 @@ import { useTheme } from '@mui/material/styles'
 import type { TransactionSummary } from '@safe-global/safe-gateway-typescript-sdk'
 import classnames from 'classnames'
 import { ProgressBar } from '@/components/common/ProgressBar'
-import SafeTxProvider, { SafeTxContext } from '../../SafeTxProvider'
-import { TxInfoProvider } from '@/components/tx-flow/TxInfoProvider'
+import { SafeTxContext } from '../../SafeTxProvider'
 import TxNonce from '../TxNonce'
 import TxStatusWidget from '../TxStatusWidget'
 import css from './styles.module.css'
 import SafeLogo from '@/public/images/logo-no-text.svg'
-import { TxSecurityProvider } from '@/components/tx/security/shared/TxSecurityContext'
 import ChainIndicator from '@/components/common/ChainIndicator'
 import SecurityWarnings from '@/components/tx/security/SecurityWarnings'
 
@@ -115,99 +113,88 @@ const TxLayout = ({
   }
 
   return (
-    <SafeTxProvider>
-      <TxInfoProvider>
-        <TxSecurityProvider>
-          <>
-            {/* Header status button */}
-            {!isReplacement && (
-              <IconButton
-                className={css.statusButton}
-                aria-label="Transaction status"
-                size="large"
-                onClick={toggleStatus}
-              >
-                <SafeLogo width={16} height={16} />
-              </IconButton>
-            )}
+    <>
+      {/* Header status button */}
+      {!isReplacement && (
+        <IconButton className={css.statusButton} aria-label="Transaction status" size="large" onClick={toggleStatus}>
+          <SafeLogo width={16} height={16} />
+        </IconButton>
+      )}
 
-            <Container className={css.container}>
-              <Grid
-                container
+      <Container className={css.container}>
+        <Grid
+          container
+          sx={{
+            gap: 3,
+            justifyContent: 'center',
+          }}
+        >
+          {/* Main content */}
+          <Grid item xs={12} md={7}>
+            <div className={css.titleWrapper}>
+              <Typography
+                data-testid="modal-title"
+                variant="h3"
+                component="div"
+                className={css.title}
                 sx={{
-                  gap: 3,
-                  justifyContent: 'center',
+                  fontWeight: '700',
                 }}
               >
-                {/* Main content */}
-                <Grid item xs={12} md={7}>
-                  <div className={css.titleWrapper}>
-                    <Typography
-                      data-testid="modal-title"
-                      variant="h3"
-                      component="div"
-                      className={css.title}
-                      sx={{
-                        fontWeight: '700',
-                      }}
-                    >
-                      {title}
-                    </Typography>
+                {title}
+              </Typography>
 
-                    <ChainIndicator inline />
-                  </div>
+              <ChainIndicator inline />
+            </div>
 
-                  <Paper data-testid="modal-header" className={css.header}>
-                    {!hideProgress && (
-                      <Box className={css.progressBar}>
-                        <ProgressBar value={progress} />
-                      </Box>
-                    )}
+            <Paper data-testid="modal-header" className={css.header}>
+              {!hideProgress && (
+                <Box className={css.progressBar}>
+                  <ProgressBar value={progress} />
+                </Box>
+              )}
 
-                    <TxLayoutHeader subtitle={subtitle} icon={icon} hideNonce={hideNonce} fixedNonce={fixedNonce} />
-                  </Paper>
+              <TxLayoutHeader subtitle={subtitle} icon={icon} hideNonce={hideNonce} fixedNonce={fixedNonce} />
+            </Paper>
 
-                  <div className={css.step}>
-                    {steps[step]}
+            <div className={css.step}>
+              {steps[step]}
 
-                    {onBack && step > 0 && (
-                      <Button
-                        data-testid="modal-back-btn"
-                        variant={isDesktop ? 'text' : 'outlined'}
-                        onClick={onBack}
-                        className={css.backButton}
-                        startIcon={<ArrowBackIcon fontSize="small" />}
-                      >
-                        Back
-                      </Button>
-                    )}
-                  </div>
-                </Grid>
+              {onBack && step > 0 && (
+                <Button
+                  data-testid="modal-back-btn"
+                  variant={isDesktop ? 'text' : 'outlined'}
+                  onClick={onBack}
+                  className={css.backButton}
+                  startIcon={<ArrowBackIcon fontSize="small" />}
+                >
+                  Back
+                </Button>
+              )}
+            </div>
+          </Grid>
 
-                {/* Sidebar */}
-                {!isReplacement && (
-                  <Grid item xs={12} md={4} className={classnames(css.widget, { [css.active]: statusVisible })}>
-                    {statusVisible && (
-                      <TxStatusWidget
-                        step={step}
-                        txSummary={txSummary}
-                        handleClose={() => setStatusVisible(false)}
-                        isBatch={isBatch}
-                        isMessage={isMessage}
-                      />
-                    )}
+          {/* Sidebar */}
+          {!isReplacement && (
+            <Grid item xs={12} md={4} className={classnames(css.widget, { [css.active]: statusVisible })}>
+              {statusVisible && (
+                <TxStatusWidget
+                  step={step}
+                  txSummary={txSummary}
+                  handleClose={() => setStatusVisible(false)}
+                  isBatch={isBatch}
+                  isMessage={isMessage}
+                />
+              )}
 
-                    <Box className={css.sticky}>
-                      <SecurityWarnings />
-                    </Box>
-                  </Grid>
-                )}
-              </Grid>
-            </Container>
-          </>
-        </TxSecurityProvider>
-      </TxInfoProvider>
-    </SafeTxProvider>
+              <Box className={css.sticky}>
+                <SecurityWarnings />
+              </Box>
+            </Grid>
+          )}
+        </Grid>
+      </Container>
+    </>
   )
 }
 
