@@ -1,4 +1,4 @@
-import { Contract, Interface, type JsonRpcProvider } from 'ethers'
+import { Interface } from 'ethers'
 import policyContracts from './contracts.json'
 
 export enum PolicyType {
@@ -49,14 +49,21 @@ export const createConfigurePolicyTx = ({
   }
 }
 
-export const createConfirmPolicyTx = (
+export const createConfirmPolicyTx = ({
+  safeAddress,
+  target,
+  selector,
+  operation,
+  policyAddress,
+  data,
+} : {
   safeAddress: string,
   target: string,
   selector: string,
   operation: number,
   policyAddress: string,
   data: string,
-) => {
+}) => {
   const txData = safePolicyGuardInterface.encodeFunctionData('confirmPolicy', [
     safeAddress,
     target,

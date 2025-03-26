@@ -5,7 +5,7 @@ import { Box, Button, Grid, Paper, Typography } from '@mui/material'
 import { useContext } from 'react'
 import { useSelector } from 'react-redux'
 import PoliciesTable from './PoliciesTable'
-
+import AddPolicyFlow from '../tx-flow/AddPolicy'
 const PoliciesSettings = () => {
   const { setTxFlow } = useContext(TxModalContext)
   const policies = useSelector(selectPolicies)
@@ -43,7 +43,7 @@ const PoliciesSettings = () => {
               {(isOk) => (
                 <Button
                   data-testid="new-policy"
-                  //onClick={() => setTxFlow(<AddPolicyFlow />)}
+                  onClick={() => setTxFlow(<AddPolicyFlow />)}
                   sx={{ mt: 2 }}
                   variant="contained"
                   disabled={!isOk}
