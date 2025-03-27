@@ -16,29 +16,46 @@ export enum policyFields {
   operation = 'operation',
   policyAddress = 'policyAddress',
   data = 'data',
+  context = 'context',
 }
 
-export type AddPolicyFlowProps = {
+export type AddPolicyParams = {
   [policyFields.policyType]: PolicyType
   [policyFields.policyAddress]: string
   [policyFields.targetAddress]: string
   [policyFields.selector]: string
   [policyFields.operation]: number
   [policyFields.data]: string
+  [policyFields.context]?: string
 }
 
-export const defaultValues: AddPolicyFlowProps = {
+export enum PoliciesFields {
+  policies = 'policies',
+}
+
+export const AddPoliciesFields = { ...PoliciesFields }
+
+export type AddPoliciesParams = {
+  [PoliciesFields.policies]: AddPolicyParams[]
+}
+
+export const defaultPolicy: AddPolicyParams = {
   policyType: PolicyType.ALLOW,
   policyAddress: policyContracts.policies.allowPolicy,
   targetAddress: '',
   selector: '',
   operation: 0,
-  data: '0x',
+  data: '',
+  context: '',
+}
+
+export const defaultParams: AddPoliciesParams = {
+  policies: [defaultPolicy],
 }
 
 const AddPolicyFlow = () => {
-  const { data, step, nextStep, prevStep } = useTxStepper<AddPolicyFlowProps>(
-    defaultValues,
+  const { data, step, nextStep, prevStep } = useTxStepper<AddPoliciesParams>(
+    defaultParams,
     // TxFlowType.SETUP_POLICY, // No events tracking for now
   )
 
@@ -62,7 +79,7 @@ const AddPolicyFlow = () => {
 
   return (
     <TxLayout
-      subtitle="Policies"
+      subtitle="Add policies"
       icon={SaveAddressIcon}
       step={step}
       onBack={prevStep}
