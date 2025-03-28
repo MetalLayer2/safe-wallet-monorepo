@@ -1,5 +1,7 @@
-import { Interface } from 'ethers'
+import { ethers, Interface } from 'ethers'
 import policyContracts from './contracts.json'
+import { ZERO_ADDRESS } from '@safe-global/protocol-kit/dist/src/utils/constants'
+import { getSafeProvider } from '@/services/tx/tx-sender/sdk'
 
 export enum PolicyType {
   ALLOW = 'allowPolicy',
@@ -10,14 +12,52 @@ export enum PolicyType {
 }
 
 export const safePolicyGuardAbi = [
+  'event PolicyConfigured(address safe, address target, bytes4 selector, uint8 operation, address policy, bytes data)',
+  'event PolicyConfirmed(address indexed safe, address indexed target, bytes4 selector, uint8 operation, address policy)',
   'function DELAY() public view returns (uint256)',
   'function getPolicy(address safe, address to, bytes calldata data, uint8 operation) public view returns (address)',
   'function configurePolicy(address target, bytes4 selector, uint8 operation, address policy, bytes calldata data) public',
+  'function configureAndConfirmPolicy(address target, bytes4 selector, uint8 operation, address policy, bytes calldata data) public',
   'function confirmPolicy(address safe, address target, bytes4 selector, uint8 operation, address policy, bytes memory data) external',
   'function pendingPolicies(address safe, bytes32 accessDataHash) public view returns (uint256)',
 ]
 
 const safePolicyGuardInterface = new Interface(safePolicyGuardAbi)
+
+export const getPolicyGuardContract = () => {
+  const provider = getSafeProvider()
+  return new ethers.Contract(policyContracts.safePolicyGuard, safePolicyGuardAbi, provider.getExternalProvider())
+}
+
+export const createConfigureAndConfimPolicyTx = ({
+  safePolicyGuardAddress,
+  targetAddress,
+  selector,
+  operation,
+  policyAddress,
+  data,
+}: {
+  safePolicyGuardAddress: string
+  targetAddress: string
+  selector: string
+  operation: number
+  policyAddress: string
+  data: string
+}) => {
+  const txData = safePolicyGuardInterface.encodeFunctionData('configureAndConfirmPolicy', [
+    targetAddress || ZERO_ADDRESS,
+    selector || '0x00000000',
+    operation || 0,
+    policyAddress,
+    data || '0x',
+  ])
+
+  return {
+    to: safePolicyGuardAddress,
+    value: '0',
+    data: txData,
+  }
+}
 
 export const createConfigurePolicyTx = ({
   safePolicyGuardAddress,
@@ -27,19 +67,19 @@ export const createConfigurePolicyTx = ({
   policyAddress,
   data,
 }: {
-  safePolicyGuardAddress: string,
-  targetAddress: string,
-  selector: string,
-  operation: number,
-  policyAddress: string,
-  data: string,
+  safePolicyGuardAddress: string
+  targetAddress: string
+  selector: string
+  operation: number
+  policyAddress: string
+  data: string
 }) => {
   const txData = safePolicyGuardInterface.encodeFunctionData('configurePolicy', [
-    targetAddress,
-    selector,
-    operation,
+    targetAddress || ZERO_ADDRESS,
+    selector || '0x00000000',
+    operation || 0,
     policyAddress,
-    data,
+    data || '0x',
   ])
 
   return {
@@ -51,26 +91,26 @@ export const createConfigurePolicyTx = ({
 
 export const createConfirmPolicyTx = ({
   safeAddress,
-  target,
+  targetAddress,
   selector,
   operation,
   policyAddress,
   data,
-} : {
-  safeAddress: string,
-  target: string,
-  selector: string,
-  operation: number,
-  policyAddress: string,
-  data: string,
+}: {
+  safeAddress: string
+  targetAddress: string
+  selector: string
+  operation: number
+  policyAddress: string
+  data: string
 }) => {
   const txData = safePolicyGuardInterface.encodeFunctionData('confirmPolicy', [
     safeAddress,
-    target,
-    selector,
-    operation,
+    targetAddress || ZERO_ADDRESS,
+    selector || '0x00000000',
+    operation || 0,
     policyAddress,
-    data,
+    data || '0x',
   ])
 
   return {

@@ -1,10 +1,10 @@
 {
-  "safePolicyGuard": "0xE3589ECB0736a86Cc5A04f4813Bb4A048ecb0ADA",
+  "safePolicyGuard": "0xD50949992d78ee236BAD3B75D8014518Fbc74d52",
   "policies": {
-    "allowPolicy": "0x2A21ccf0303C9F5eb5383334Ac97844a4F4fd8A7",
-    "coSignerPolicy": "0xF82a9f70F138A84e48ab17CEb78c58c7DF822b0F",
-    "erc20TransferPolicy": "0xDC684bc69628cC54315d350E7c172bDd0f3A28Ef",
-    "multiSendPolicy": "0x129bd5bE130cB351a3d651f7610e6506974fA936",
-    "nativeTransferPolicy": "0x3DDd878Bac01dCC31edfAF4D6D3eb2B090670e43"
+    "allowPolicy": "0x8A11eE51313594aC1F0625ded905A07Ff8254eB0",
+    "coSignerPolicy": "0x8BE926BA33924DB5699A6461284580aF3e8675D0",
+    "erc20TransferPolicy": "0xf7590CE7603b59ed29F8D103166A6f3B415a6fBe",
+    "multiSendPolicy": "0x10E5ba74e91b742595d3a3adA96627Bd95e6f468",
+    "nativeTransferPolicy": "0x2E816d124eaCeA042d547959eb8852B04e01FDb8"
   }
 }
