@@ -14,7 +14,7 @@ type SignProps = {
 
 const CheckboxGuardedSignForm = withCheckboxGuard(SignFormV2)
 
-export const Sign = ({ txId, onSubmit }: SignProps) => {
+const Sign = ({ txId, onSubmit }: SignProps) => {
   const { safe } = useSafeInfo()
   const [checked, setChecked] = useState(false)
   const { safeTx, txOrigin } = useContext(SafeTxContext)
@@ -54,3 +54,5 @@ export const Sign = ({ txId, onSubmit }: SignProps) => {
     </>
   )
 }
+
+export default Sign

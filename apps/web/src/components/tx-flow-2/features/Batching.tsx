@@ -7,14 +7,16 @@ import useSafeInfo from '@/hooks/useSafeInfo'
 import { isDelegateCall } from '@/services/tx/tx-sender/sdk'
 import { TxModalContext } from '@/components/tx-flow'
 import { TxFlowContext } from '../TxFlowProvider'
+import { SubmitCallback } from '../createTxFlow'
 
 export type BatchProps = {
   origin?: string
   submitDisabled?: boolean
   isBatch?: boolean
+  onSubmit: SubmitCallback
 }
 
-export const Batching = ({ submitDisabled, isBatch }: BatchProps): ReactElement | null => {
+const Batching = ({ submitDisabled, isBatch }: BatchProps): ReactElement | null => {
   const { setTxFlow } = useContext(TxModalContext)
   const { addToBatch } = useTxActions()
   const { safeTx } = useContext(SafeTxContext)
@@ -61,3 +63,5 @@ export const Batching = ({ submitDisabled, isBatch }: BatchProps): ReactElement 
     />
   )
 }
+
+export default Batching

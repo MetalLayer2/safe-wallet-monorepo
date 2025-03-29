@@ -16,7 +16,7 @@ type ExecuteProps = {
 
 const CheckboxGuardedExecuteForm = withCheckboxGuard(ExecuteForm)
 
-export const Execute = ({ txId, disableSubmit, onSubmit }: ExecuteProps) => {
+const Execute = ({ txId, disableSubmit, onSubmit }: ExecuteProps) => {
   const { safe } = useSafeInfo()
   const { safeTx, txOrigin } = useContext(SafeTxContext)
   const { isCreation, willExecute, isProposing, onlyExecute, trackTxEvent } = useContext(TxFlowContext)
@@ -57,3 +57,5 @@ export const Execute = ({ txId, disableSubmit, onSubmit }: ExecuteProps) => {
     />
   )
 }
+
+export default Execute

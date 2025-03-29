@@ -9,7 +9,7 @@ type CounterfactualProps = {
   onSubmit: SubmitCallback
 }
 
-export const Counterfactual = ({ onSubmit }: CounterfactualProps) => {
+const Counterfactual = ({ onSubmit }: CounterfactualProps) => {
   const { safe } = useSafeInfo()
   const { safeTx, txOrigin } = useContext(SafeTxContext)
   const { isCreation, isProposing, trackTxEvent, isSubmittable } = useContext(TxFlowContext)
@@ -38,3 +38,5 @@ export const Counterfactual = ({ onSubmit }: CounterfactualProps) => {
     />
   )
 }
+
+export default Counterfactual

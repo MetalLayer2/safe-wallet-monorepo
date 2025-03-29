@@ -3,7 +3,7 @@ import useTxStepper from '../tx-flow/useTxStepper'
 import SafeTxProvider from '../tx-flow/SafeTxProvider'
 import { TxInfoProvider } from '../tx-flow/TxInfoProvider'
 import { TxSecurityProvider } from '../tx/security/shared/TxSecurityContext'
-import TxFlowProvider, { type CallbackFn, type TxFlowContextType } from './TxFlowProvider'
+import TxFlowProvider, { type TxFlowContextType } from './TxFlowProvider'
 import { StepContent } from './StepContent'
 import { withMiddlewares } from './withMiddlewares'
 import ReviewTransaction from '../tx/ReviewTransactionV2'
@@ -16,13 +16,14 @@ type ComponentWithChildren<T> = ComponentType<PropsWithChildren<T>>
 export type SubmitCallbackProps = { txId?: string; isExecuted?: boolean }
 export type SubmitCallbackPropsWithData<T extends unknown> = SubmitCallbackProps & { data?: T }
 
-export type SubmitCallback = CallbackFn<SubmitCallbackProps>
-export type SubmitCallbackWithData<T> = CallbackFn<SubmitCallbackPropsWithData<T>>
+export type NextStepCallback<T> = (args?: T) => void
+export type SubmitCallback = (args: SubmitCallbackProps) => void
+export type SubmitCallbackWithData<T> = (args: SubmitCallbackPropsWithData<T>) => void
 
 type TxFlowProps<T extends unknown> = {
   commonSteps?:
     | [
-        ...Array<ComponentWithChildren<{ onSubmit: (args?: T) => void }>>,
+        ...ComponentWithChildren<{ onSubmit: NextStepCallback<T> }>[],
         ComponentWithChildren<{ onSubmit: SubmitCallback }>,
       ]
     | []
@@ -51,7 +52,7 @@ export const createTxFlow = <T extends unknown>({ commonSteps = [] }: TxFlowProp
 
     const childrenArray = Array.isArray(children) ? children : [children]
 
-    const extraSteps = commonSteps.slice(0, -1) as ComponentWithChildren<{ onSubmit: (args?: T) => void }>[]
+    const extraSteps = commonSteps.slice(0, -1) as ComponentWithChildren<{ onSubmit: NextStepCallback<T> }>[]
     const [LastStep] = commonSteps.slice(-1) as [ComponentWithChildren<{ onSubmit: SubmitCallback }>] | []
 
     const steps = [
@@ -90,12 +91,18 @@ export const createTxFlow = <T extends unknown>({ commonSteps = [] }: TxFlowProp
 }
 
 export const createDefaultTxFlow = <T extends unknown>(
-  ReviewTransactionComponent: ComponentWithChildren<{ onSubmit: (args?: T) => void }> = ReviewTransaction,
-  TxReceiptComponent: ComponentWithChildren<{ onSubmit: SubmitCallback }> = ConfirmTxDetails,
+  ReviewTransactionComponent: ComponentWithChildren<{ onSubmit?: NextStepCallback<T> }> = ReviewTransaction,
+  TxReceiptComponent: ComponentWithChildren<{ onSubmit?: SubmitCallback }> = ConfirmTxDetails,
 ) =>
   createTxFlow<T>({
     commonSteps: [
-      withMiddlewares(ReviewTransactionComponent, undefined, [Batching]),
-      withMiddlewares(TxReceiptComponent, undefined, [Counterfactual, Execute, ExecuteThroughRole, Sign, Propose]),
+      withMiddlewares<T>(ReviewTransactionComponent, undefined, [Batching]),
+      withMiddlewares<T, SubmitCallback>(TxReceiptComponent, undefined, [
+        Counterfactual,
+        Execute,
+        ExecuteThroughRole,
+        Sign,
+        Propose,
+      ]),
     ],
   })

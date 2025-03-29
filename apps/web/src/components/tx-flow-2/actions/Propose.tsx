@@ -8,7 +8,7 @@ type ProposeProps = {
   onSubmit: SubmitCallback
 }
 
-export const Propose = ({ onSubmit }: ProposeProps) => {
+const Propose = ({ onSubmit }: ProposeProps) => {
   const { safeTx, txOrigin } = useContext(SafeTxContext)
   const { isProposing, trackTxEvent, isSubmittable } = useContext(TxFlowContext)
 
@@ -26,3 +26,5 @@ export const Propose = ({ onSubmit }: ProposeProps) => {
 
   return <ProposerForm safeTx={safeTx} origin={txOrigin} disableSubmit={!isSubmittable} onSubmit={handleSubmit} />
 }
+
+export default Propose

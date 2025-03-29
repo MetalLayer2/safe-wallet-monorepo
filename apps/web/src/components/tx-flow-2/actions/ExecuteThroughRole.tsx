@@ -9,7 +9,7 @@ type ExecuteThroughRoleProps = {
   onSubmit: SubmitCallback
 }
 
-export const ExecuteThroughRole = ({ onSubmit }: ExecuteThroughRoleProps) => {
+const ExecuteThroughRole = ({ onSubmit }: ExecuteThroughRoleProps) => {
   const { safe } = useSafeInfo()
   const { safeTx } = useContext(SafeTxContext)
   const { willExecuteThroughRole, trackTxEvent, role, isSubmittable } = useContext(TxFlowContext)
@@ -29,3 +29,5 @@ export const ExecuteThroughRole = ({ onSubmit }: ExecuteThroughRoleProps) => {
 
   return <ExecuteThroughRoleForm safeTx={safeTx} disableSubmit={!isSubmittable} role={role!} onSubmit={handleSubmit} />
 }
+
+export default ExecuteThroughRole

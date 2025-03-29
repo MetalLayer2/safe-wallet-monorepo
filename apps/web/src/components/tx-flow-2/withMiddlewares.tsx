@@ -1,5 +1,5 @@
 import React, { type ComponentType, type PropsWithChildren, type ReactNode } from 'react'
-import { CallbackFn } from './TxFlowProvider'
+import { NextStepCallback, SubmitCallback } from './createTxFlow'
 
 const AppendElements = <T extends object = {}>({
   children,
@@ -27,12 +27,13 @@ const AppendElements = <T extends object = {}>({
 const withActions = <
   T extends unknown,
   P extends object,
-  ActionProps extends { onSubmit: CallbackFn<T> } = { onSubmit: CallbackFn<T> },
+  Callback extends NextStepCallback<T> | SubmitCallback = NextStepCallback<T>,
+  ActionProps extends { onSubmit: SubmitCallback } = { onSubmit: SubmitCallback },
 >(
   WrappedComponent: ComponentType<P & { actions: ReactNode }>,
-  applyActions?: Array<(props: ActionProps) => ReactNode>,
+  applyActions?: ComponentType<ActionProps>[],
 ) => {
-  return function WithActionsComponent(props: P & { onSubmit?: CallbackFn<T> }) {
+  return function WithActionsComponent(props: P & { onSubmit?: Callback }) {
     const { onSubmit } = props
     const actions = <AppendElements append={applyActions} props={{ onSubmit } as ActionProps} />
 
@@ -42,7 +43,7 @@ const withActions = <
 
 const withFeatures = <P extends PropsWithChildren>(
   WrappedComponent: ComponentType<P>,
-  applyFeatures?: Array<(props: any) => ReactNode>,
+  applyFeatures?: ComponentType[],
 ) => {
   return function WithFeaturesComponent(props: P) {
     const content = (
@@ -57,16 +58,21 @@ const withFeatures = <P extends PropsWithChildren>(
 
 export const withMiddlewares = <
   T extends unknown,
-  P extends PropsWithChildren<{ onSubmit?: CallbackFn<T> | (() => void); actions?: ReactNode }>,
+  Callback extends NextStepCallback<T> | SubmitCallback = NextStepCallback<T>,
+  P extends PropsWithChildren<{ onSubmit?: Callback; actions?: ReactNode }> = PropsWithChildren<{
+    onSubmit?: Callback
+    actions?: ReactNode
+  }>,
+  ActionProps extends { onSubmit: SubmitCallback } = { onSubmit: SubmitCallback },
 >(
   WrappedComponent: ComponentType<P>,
-  applyFeatures?: Array<(props: any) => ReactNode>,
-  applyActions?: Array<(props: any) => ReactNode>,
+  applyFeatures?: ComponentType[],
+  applyActions?: ComponentType<ActionProps>[],
 ) => {
   const WithFeatures = withFeatures(WrappedComponent, applyFeatures)
-  const WithMiddlewares = withActions<T, P>(WithFeatures, applyActions)
+  const WithMiddlewares = withActions<T, P, Callback, ActionProps>(WithFeatures, applyActions)
 
-  return function WithMiddlewaresComponent({ onSubmit, ...props }: P & { onSubmit?: CallbackFn<T> | (() => void) }) {
+  return function WithMiddlewaresComponent({ onSubmit, ...props }: P & { onSubmit?: Callback }) {
     return <WithMiddlewares {...(props as P)} onSubmit={onSubmit} />
   }
 }

@@ -28,7 +28,7 @@ import CheckWallet from '@/components/common/CheckWallet'
 import { TxFlowContext } from '@/components/tx-flow-2/TxFlowProvider'
 
 export type ReviewTransactionContentProps = PropsWithChildren<{
-  onSubmit: () => void
+  onSubmit?: () => void
   isRejection?: boolean
   isBatch?: boolean
   isBatchable?: boolean
@@ -85,7 +85,7 @@ export const ReviewTransactionContent = ({
       }
 
       setTxOrigin(customOrigin)
-      onSubmit()
+      onSubmit?.()
     },
     [onSubmit, customOrigin, txOrigin, setTxOrigin],
   )
