@@ -48,7 +48,7 @@ const mockOnboardState = {
         },
       ],
     },
-  ] as WalletState[],
+  ] as unknown as WalletState[],
   accountCenter: {
     enabled: true,
   },
