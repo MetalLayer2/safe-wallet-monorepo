@@ -1,6 +1,15 @@
-import css from '@/components/tx/ExecuteCheckbox/styles.module.css'
 import AddressBookInput from '@/components/common/AddressBookInput'
+import AddressInput from '@/components/common/AddressInput'
+import NameInput from '@/components/common/NameInput'
+import css from '@/components/tx/ExecuteCheckbox/styles.module.css'
+import policyContracts from '@/features/policies/contracts/contracts.json'
+import { PolicyType } from '@/features/policies/contracts/policyContracts'
+import { useCurrentChain } from '@/hooks/useChains'
+import useSafeInfo from '@/hooks/useSafeInfo'
+import { useWeb3ReadOnly } from '@/hooks/wallets/web3'
 import DeleteIcon from '@/public/images/common/delete.svg'
+import { getMultiSendCallOnlyContractDeployment } from '@/services/contracts/deployments'
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded'
 import {
   FormControl,
   Grid,
@@ -12,21 +21,12 @@ import {
   SvgIcon,
   Typography,
 } from '@mui/material'
-import { Controller, useFormContext, UseFormReturn, useWatch } from 'react-hook-form'
-import { AddPoliciesFields, AddPoliciesParams, defaultPolicy, policyFields } from '.'
-import AddressInput from '@/components/common/AddressInput'
-import NameInput from '@/components/common/NameInput'
-import { PolicyType } from '@/features/policies/contracts/policyContracts'
-import { useCurrentChain } from '@/hooks/useChains'
-import useSafeInfo from '@/hooks/useSafeInfo'
-import { useWeb3ReadOnly } from '@/hooks/wallets/web3'
-import { getMultiSendCallOnlyContractDeployment } from '@/services/contracts/deployments'
-import { ChangeEvent, useEffect, useRef, useState } from 'react'
-import policyContracts from '@/features/policies/contracts/contracts.json'
-import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded'
-import { POLICY_TYPE_OPTIONS } from './CreatePolicy'
-import { ethers } from 'ethers'
 import { getMultiSendCallOnlyDeployment } from '@safe-global/safe-deployments'
+import { ethers } from 'ethers'
+import { useEffect, useState } from 'react'
+import { Controller, useFormContext, useWatch } from 'react-hook-form'
+import { defaultPolicy, policyFields } from './AddPolicy'
+import { POLICY_TYPE_OPTIONS } from './CreatePolicy'
 
 const CreateAllowPolicy = ({ fieldName }: { fieldName: string }) => {
   const { setValue } = useFormContext()

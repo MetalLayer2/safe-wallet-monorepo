@@ -1,13 +1,13 @@
 import AddIcon from '@mui/icons-material/Add'
 import { Box, Button, CardActions, Divider, SvgIcon } from '@mui/material'
-import { FormProvider, useForm, useFieldArray } from 'react-hook-form'
+import { FormProvider, useFieldArray, useForm } from 'react-hook-form'
 
 import TxCard from '@/components/tx-flow/common/TxCard'
 import commonCss from '@/components/tx-flow/common/styles.module.css'
-import { PolicyType } from '@/features/policies/contracts/policyContracts'
 import policyContracts from '@/features/policies/contracts/contracts.json'
+import { PolicyType } from '@/features/policies/contracts/policyContracts'
+import { AddPoliciesFields, AddPoliciesParams } from './AddPolicy'
 import PolicyRow from './PolicyRow'
-import { AddPoliciesFields, AddPoliciesParams } from '.'
 
 export const POLICY_TYPE_OPTIONS = [
   { label: 'Allow', value: PolicyType.ALLOW },

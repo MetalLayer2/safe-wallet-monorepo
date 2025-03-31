@@ -1,7 +1,7 @@
+import { getSafeProvider } from '@/services/tx/tx-sender/sdk'
+import { ZERO_ADDRESS } from '@safe-global/protocol-kit/dist/src/utils/constants'
 import { ethers, Interface } from 'ethers'
 import policyContracts from './contracts.json'
-import { ZERO_ADDRESS } from '@safe-global/protocol-kit/dist/src/utils/constants'
-import { getSafeProvider } from '@/services/tx/tx-sender/sdk'
 
 export enum PolicyType {
   ALLOW = 'allowPolicy',

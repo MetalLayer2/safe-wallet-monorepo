@@ -1,5 +1,7 @@
 import { SafeTxContext } from '@/components/tx-flow/SafeTxProvider'
+import FieldsGrid from '@/components/tx/FieldsGrid'
 import ReviewTransaction from '@/components/tx/ReviewTransaction'
+import SendToBlock from '@/components/tx/SendToBlock'
 import policyContracts from '@/features/policies/contracts/contracts.json'
 import {
   createConfigureAndConfimPolicyTx,
@@ -13,10 +15,8 @@ import { sameAddress } from '@/utils/addresses'
 import { Divider, Typography } from '@mui/material'
 import type { MetaTransactionData } from '@safe-global/safe-core-sdk-types'
 import { useContext, useEffect } from 'react'
+import { AddPoliciesParams } from './AddPolicy'
 import { POLICY_TYPE_OPTIONS } from './CreatePolicy'
-import SendToBlock from '@/components/tx/SendToBlock'
-import FieldsGrid from '@/components/tx/FieldsGrid'
-import { AddPoliciesParams, AddPolicyParams, defaultPolicy } from '.'
 
 const configurePoliciesTx = async (
   params: AddPoliciesParams,

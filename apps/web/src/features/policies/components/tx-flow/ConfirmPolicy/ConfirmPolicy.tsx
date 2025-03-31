@@ -1,11 +1,9 @@
 import TxLayout, { TxStep } from '@/components/tx-flow/common/TxLayout'
-import { useMemo } from 'react'
-import { ConfirmTxDetails } from '@/components/tx/ConfirmTxDetails'
-import { TxFlowType } from '@/services/analytics'
-import { PolicyEvent } from '../../PoliciesSettings/PoliciesSettings'
-import { AddPoliciesParams } from '../AddPolicy'
-import ReviewPolicy from '../AddPolicy/ReviewPolicy'
 import useTxStepper from '@/components/tx-flow/useTxStepper'
+import { ConfirmTxDetails } from '@/components/tx/ConfirmTxDetails'
+import { useMemo } from 'react'
+import { AddPoliciesParams } from '../AddPolicy/AddPolicy'
+import ReviewPolicy from '../AddPolicy/ReviewPolicy'
 
 const ConfimPolicyFlow = ({ policy }: { policy: AddPoliciesParams }) => {
   const { step, nextStep, prevStep } = useTxStepper(undefined)
