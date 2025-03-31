@@ -86,7 +86,7 @@ const CreateErc20TransferPolicy = ({ fieldName }: { fieldName: string }) => {
 
   useEffect(() => {
     setValue(`${fieldName}.${policyFields.operation}`, 0)
-    setValue(`${fieldName}.${policyFields.selector}`, '0x00000000')
+    setValue(`${fieldName}.${policyFields.selector}`, '0xa9059cbb')
   }, [])
 
   useEffect(() => {

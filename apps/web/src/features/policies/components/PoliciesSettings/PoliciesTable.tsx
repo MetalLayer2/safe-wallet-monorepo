@@ -108,18 +108,21 @@ const PoliciesTable = ({
               let context = ''
 
               if (policyType === 'erc20TransferPolicy') {
-                const decoded = ethers.AbiCoder.defaultAbiCoder().decode(
-                  ['tuple(address recipient, bool allowed)[]'],
-                  policy.args.data,
-                )
-                targetAddress = decoded[0].toArray()[0][0]
+                targetAddress = ''
+                if (policy.args.data) {
+                  const decoded = ethers.AbiCoder.defaultAbiCoder().decode(
+                    ['tuple(address recipient, bool allowed)[]'],
+                    policy.args.data,
+                  )
+                  targetAddress = decoded[0].toArray()[0][0]
+                  context = decoded[0].toArray()[0][0]
+                }
                 tokenAddress = (
                   <Stack direction="row" gap={1} alignItems="center">
                     <NamedAddressInfo address={policy.args.target} shortAddress={true} hasExplorer showCopyButton />
                     {/*<Typography variant="body2">{decoded[0].toArray()[0][1] === true ? 'Allowed' : 'Not allowed'}</Typography>*/}
                   </Stack>
                 )
-                context = decoded[0].toArray()[0][0]
               } else if (policyType === 'coSignerPolicy') {
                 // TODO: This check can be removed once PolicyConfirmed event returns the data
                 if (policy.args.data) {
@@ -154,9 +157,9 @@ const PoliciesTable = ({
                   },
                   target: {
                     rawValue: targetAddress,
-                    content: (
+                    content: targetAddress ? (
                       <NamedAddressInfo address={targetAddress} shortAddress={true} hasExplorer showCopyButton />
-                    ),
+                    ) : '-',
                   },
                   selector: {
                     rawValue: policy.args.selector,
