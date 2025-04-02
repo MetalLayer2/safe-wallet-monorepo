@@ -19,6 +19,7 @@ export const RemoveSpendingLimitFlow = dynamic(() => import('./RemoveSpendingLim
 export const ReplaceOwnerFlow = dynamic(() => import('./ReplaceOwner'))
 export const ReplaceTxFlow = dynamic(() => import('./ReplaceTx'))
 export const SafeAppsTxFlow = dynamic(() => import('./SafeAppsTx'))
+export const SetupSwapperRoleFlow = dynamic(() => import('./SetupSwapperRole'))
 export const SignMessageFlow = dynamic(() => import('./SignMessage'))
 export const SignMessageOnChainFlow = dynamic(() => import('./SignMessageOnChain'))
 export const SuccessScreenFlow = dynamic(() => import('./SuccessScreen'))

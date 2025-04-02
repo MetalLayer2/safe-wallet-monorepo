@@ -6,6 +6,7 @@ import TransactionGuards from '@/components/settings/TransactionGuards'
 import SettingsHeader from '@/components/settings/SettingsHeader'
 import { FallbackHandler } from '@/components/settings/FallbackHandler'
 import { BRAND_NAME } from '@/config/constants'
+import SetupSwapperRoleButton from '@/components/settings/SetupSwapperRoleButton'
 
 const Modules: NextPage = () => {
   return (
@@ -28,6 +29,10 @@ const Modules: NextPage = () => {
 
           <Grid item>
             <FallbackHandler />
+          </Grid>
+
+          <Grid item>
+            <SetupSwapperRoleButton />
           </Grid>
         </Grid>
       </main>

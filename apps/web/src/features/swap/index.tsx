@@ -44,7 +44,7 @@ import { FEATURES } from '@safe-global/utils/utils/chains'
 
 const BASE_URL = typeof window !== 'undefined' && window.location.origin ? window.location.origin : ''
 
-const PRE_SIGN_SIGHASH = id('setPreSignature(bytes,bool)').slice(0, 10)
+export const PRE_SIGN_SIGHASH = id('setPreSignature(bytes,bool)').slice(0, 10)
 const WRAP_SIGHASH = id('deposit()').slice(0, 10)
 const UNWRAP_SIGHASH = id('withdraw(uint256)').slice(0, 10)
 const CREATE_WITH_CONTEXT_SIGHASH = id('createWithContext((address,bytes32,bytes),address,bytes,bool)').slice(0, 10)
