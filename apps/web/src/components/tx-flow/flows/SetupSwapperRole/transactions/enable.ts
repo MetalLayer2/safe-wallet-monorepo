@@ -1,12 +1,12 @@
 import { id } from 'ethers'
 import { Safe__factory } from '@safe-global/utils/types/contracts'
-import { setUpRolesMod, setUpRoles } from 'zodiac-roles-sdk'
+import { setUpRolesMod, setUpRoles, applyAllowances } from 'zodiac-roles-sdk'
 import type { MetaTransactionData } from '@safe-global/safe-core-sdk-types'
 import type { SafeInfo } from '@safe-global/safe-gateway-typescript-sdk'
-import type { Permission } from 'zodiac-roles-sdk'
+import type { Allowance, Permission } from 'zodiac-roles-sdk'
 
 import { SwapperRoleContracts } from './constants'
-import { allowErc20Approve, allowWrappingNativeTokens, allowCreatingOrders } from './permissions'
+import { allowErc20Approve, allowWrappingNativeTokens, allowCreatingOrders, createAllowanceKey } from './permissions'
 
 // TODO: Set this dynamically
 const SWAPPER_ADDRESS = '0xB5E64e857bb7b5350196C5BAc8d639ceC1072745'
@@ -22,7 +22,7 @@ function getSaltNonce(): `0x${string}` {
   return id('Vibez' + Date.now()) as `0x${string}`
 }
 
-export function enableSwapper(safe: SafeInfo): Array<MetaTransactionData> {
+export async function enableSwapper(safe: SafeInfo): Promise<Array<MetaTransactionData>> {
   if (!isSupportChain(safe.chainId)) {
     throw new Error('Unsupported chain')
   }
@@ -56,9 +56,45 @@ export function enableSwapper(safe: SafeInfo): Array<MetaTransactionData> {
   // Allow wrapping of WETH
   permissions.push(allowWrappingNativeTokens(SwapperRoleContracts[safe.chainId].weth))
 
+  // Create allowance
+  const allowances: Allowance[] = []
+
+  const maxAmount = BigInt(10 ** 18 * 0.01)
+
+  const allowanceKey = createAllowanceKey(SwapperRoleContracts[safe.chainId].weth, 'sell')
+
+  allowances.push({
+    key: allowanceKey,
+    balance: maxAmount,
+    refill: maxAmount,
+    maxRefill: maxAmount,
+    period: BigInt(5 * 60),
+    timestamp: BigInt(Math.floor(Date.now() / 1000)),
+  })
+
+  transactions.push(
+    ...(
+      await applyAllowances(allowances, {
+        address: rolesModifierAddress,
+        chainId: Number(safe.chainId) as 11155111,
+        currentAllowances: [],
+        mode: 'extend',
+      })
+    ).map((allowanceCallData) => ({
+      data: allowanceCallData,
+      to: rolesModifierAddress,
+      value: '0',
+    })),
+  )
+
   // Allow creating orders using OrderSigner
   permissions.push(
-    allowCreatingOrders(safe.chainId, [SwapperRoleContracts[safe.chainId].weth], safe.address.value as `0x${string}`),
+    allowCreatingOrders(
+      safe.chainId,
+      [SwapperRoleContracts[safe.chainId].weth],
+      safe.address.value as `0x${string}`,
+      allowanceKey,
+    ),
   )
 
   transactions.push(

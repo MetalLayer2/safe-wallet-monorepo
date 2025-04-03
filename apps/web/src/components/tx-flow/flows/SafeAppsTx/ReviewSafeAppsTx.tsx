@@ -12,6 +12,7 @@ import { PRE_SIGN_SIGHASH } from '@/features/swap'
 import useWallet from '@/hooks/wallets/useWallet'
 import { Button } from '@mui/material'
 import { signAsSwapper } from '../SetupSwapperRole/transactions/sign'
+import useSafeInfo from '@/hooks/useSafeInfo'
 
 type ReviewSafeAppsTxProps = {
   safeAppsTx: SafeAppsTxParams
@@ -21,6 +22,7 @@ type ReviewSafeAppsTxProps = {
 
 const ReviewSafeAppsTx = ({ safeAppsTx: { txs, params }, onSubmit, origin }: ReviewSafeAppsTxProps): ReactElement => {
   const { setSafeTx, safeTxError, setSafeTxError } = useContext(SafeTxContext)
+  const { safe } = useSafeInfo()
   const wallet = useWallet()
 
   useHighlightHiddenTab()
@@ -49,7 +51,7 @@ const ReviewSafeAppsTx = ({ safeAppsTx: { txs, params }, onSubmit, origin }: Rev
 
   const vibeExecuteTx = async () => {
     if (canSignAsSwapper && wallet) {
-      return signAsSwapper(wallet, txs)
+      return signAsSwapper(wallet, txs, safe)
     }
   }
 

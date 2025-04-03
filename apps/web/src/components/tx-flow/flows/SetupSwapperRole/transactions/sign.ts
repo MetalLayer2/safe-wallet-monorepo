@@ -5,6 +5,7 @@ import type { BaseTransaction } from '@safe-global/safe-apps-sdk/dist/types'
 import { CowOrderSignerAbi, SwapperRoleContracts } from './constants'
 import { SWAPPER_ROLE_KEY } from './enable'
 import type { ConnectedWallet } from '@/hooks/wallets/useOnboard'
+import type { SafeInfo } from '@safe-global/safe-gateway-typescript-sdk'
 
 const COW_SWAP_API = {
   ['11155111']: 'https://api.cow.fi/sepolia',
@@ -13,14 +14,14 @@ const COW_SWAP_API = {
 const CowOrderSignerInterface = new Interface(CowOrderSignerAbi)
 const GPv2Interface = new Interface(['function setPreSignature(bytes,bool)'])
 const RolesModifierInterface = new Interface([
-  'function execTransactionWithRoleReturnData(address,uint256,bytes,uint8,bytes32,bool)',
+  'function execTransactionWithRole(address,uint256,bytes,uint8,bytes32,bool)',
 ])
 
 function isSupportChain(chainId: string): chainId is keyof typeof COW_SWAP_API & keyof typeof SwapperRoleContracts {
   return chainId in COW_SWAP_API && chainId in SwapperRoleContracts
 }
 
-export async function signAsSwapper(wallet: ConnectedWallet, transactions: Array<BaseTransaction>) {
+export async function signAsSwapper(wallet: ConnectedWallet, transactions: Array<BaseTransaction>, safeInfo: SafeInfo) {
   const setPreSignature = transactions.find((tx) => {
     const fragment = GPv2Interface.getFunction('setPreSignature')
     return fragment && tx.data.startsWith(fragment.selector)
@@ -64,13 +65,17 @@ export async function signAsSwapper(wallet: ConnectedWallet, transactions: Array
     encodeRoleKey(SWAPPER_ROLE_KEY),
     false,
   ])
+  const firstModule = safeInfo.modules?.[0]
+
+  if (!firstModule) {
+    throw new Error('No module found')
+  }
 
   return await wallet.provider.request({
     method: 'eth_sendTransaction',
     params: [
       {
-        // TODO: Fetch role modifier from SafeInfo
-        to: '0x67fdBb46AD5e85ade9E129D1E7E7fAFA2789949B',
+        to: firstModule.value,
         from: wallet.address,
         data: execTransactionWithRoleData,
         value: '0x0',

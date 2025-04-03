@@ -1,4 +1,4 @@
-import { Interface } from 'ethers'
+import { ethers, Interface, keccak256 } from 'ethers'
 import { c, forAll, type Permission } from 'zodiac-roles-sdk'
 
 import { CowOrderSignerAbi, SwapperRoleContracts } from './constants'
@@ -30,10 +30,14 @@ export const allowWrappingNativeTokens = (tokenAddress: `0x${string}`): Permissi
   selector: WrappedNativeTokenInterface.getFunction('deposit')!.selector as `0x${string}`,
 })
 
+export const createAllowanceKey = (tokenAddress: `0x${string}`, buyOrSell: 'buy' | 'sell'): `0x${string}` =>
+  keccak256(ethers.concat([tokenAddress, buyOrSell === 'buy' ? '0x00' : '0x01'])) as `0x${string}`
+
 export const allowCreatingOrders = (
   chainId: keyof typeof SwapperRoleContracts,
   sellTokens: `0x${string}`[],
   receiver: `0x${string}`,
+  amountAllowanceKey?: `0x${string}`,
 ): Permission => ({
   targetAddress: SwapperRoleContracts[chainId].cowSwap.orderSigner,
   delegatecall: true,
@@ -44,7 +48,7 @@ export const allowCreatingOrders = (
         oneOf(sellTokens),
         c.pass,
         c.eq(receiver),
-        c.pass,
+        amountAllowanceKey ? c.withinAllowance(amountAllowanceKey) : c.pass,
         c.pass,
         c.pass,
         c.pass,

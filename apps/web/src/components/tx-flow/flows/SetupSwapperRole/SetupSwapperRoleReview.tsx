@@ -17,7 +17,8 @@ const SetupSwapperRoleReview = ({ onSubmit }: { onSubmit: () => void }): ReactEl
     if (!sdk) return
 
     const createTx = async () => {
-      return await sdk.createTransaction({ transactions: enableSwapper(safe), onlyCalls: true })
+      const transactions = await enableSwapper(safe)
+      return await sdk.createTransaction({ transactions, onlyCalls: true })
     }
 
     createTx().then(setSafeTx).catch(setSafeTxError)
