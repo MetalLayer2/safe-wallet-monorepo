@@ -1,9 +1,13 @@
-import { c, forAll, type Permission } from 'zodiac-roles-sdk'
-import { CowOrderSignerAbi, SwapperRoleContracts } from './constants'
 import { Interface } from 'ethers'
+import { c, forAll, type Permission } from 'zodiac-roles-sdk'
 
-const WrappedNativeTokenInterface = new Interface(['function deposit()'])
+import { CowOrderSignerAbi, SwapperRoleContracts } from './constants'
+
 const CowOrderSignerInterface = new Interface(CowOrderSignerAbi)
+const GPv2OrderStructAbi = [
+  'tuple(address sellToken, address buyToken, address receiver, uint256 sellAmount, uint256 buyAmount, uint32 validTo, bytes32 appData, uint256 feeAmount, bytes32 kind, bool partiallyFillable, bytes32 sellTokenBalance, bytes32 buyTokenBalance)',
+]
+const WrappedNativeTokenInterface = new Interface(['function deposit()'])
 
 const oneOf = <T extends unknown>(values: readonly T[]) => {
   if (values.length === 0) {
@@ -26,12 +30,8 @@ export const allowWrappingNativeTokens = (tokenAddress: `0x${string}`): Permissi
   selector: WrappedNativeTokenInterface.getFunction('deposit')!.selector as `0x${string}`,
 })
 
-const orderStructAbi = [
-  'tuple(address sellToken, address buyToken, address receiver, uint256 sellAmount, uint256 buyAmount, uint32 validTo, bytes32 appData, uint256 feeAmount, bytes32 kind, bool partiallyFillable, bytes32 sellTokenBalance, bytes32 buyTokenBalance)',
-]
-
 export const allowCreatingOrders = (
-  chainId: '1' | '100' | '42161' | '11155111',
+  chainId: keyof typeof SwapperRoleContracts,
   sellTokens: `0x${string}`[],
   receiver: `0x${string}`,
 ): Permission => ({
@@ -56,7 +56,7 @@ export const allowCreatingOrders = (
       ]),
     ],
     [
-      orderStructAbi[0], // order struct
+      GPv2OrderStructAbi[0], // order struct
       'uint32', // validDuration
       'uint256', // feeAmountBP
     ],
