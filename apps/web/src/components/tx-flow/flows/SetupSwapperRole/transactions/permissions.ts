@@ -1,13 +1,14 @@
-import { ethers, Interface, keccak256 } from 'ethers'
-import { c, forAll, type Permission } from 'zodiac-roles-sdk'
+import { ERC20__factory } from '@safe-global/utils/types/contracts'
+import { Interface } from 'ethers'
+import { c, forAll } from 'zodiac-roles-sdk'
+import type { Permission } from 'zodiac-roles-sdk'
+import type { SafeInfo } from '@safe-global/safe-gateway-typescript-sdk'
 
-import { CowOrderSignerAbi, SwapperRoleContracts } from './constants'
+import { CowOrderSignerAbi, isSwapperRoleChain, SwapperRoleContracts } from './constants'
 
 const CowOrderSignerInterface = new Interface(CowOrderSignerAbi)
-const GPv2OrderStructAbi = [
-  'tuple(address sellToken, address buyToken, address receiver, uint256 sellAmount, uint256 buyAmount, uint32 validTo, bytes32 appData, uint256 feeAmount, bytes32 kind, bool partiallyFillable, bytes32 sellTokenBalance, bytes32 buyTokenBalance)',
-]
-const WrappedNativeTokenInterface = new Interface(['function deposit()'])
+const Erc20Interface = ERC20__factory.createInterface()
+const WrappedNativeTokenInterface = new Interface(['function deposit()', 'function withdraw(uint)'])
 
 const oneOf = <T extends unknown>(values: readonly T[]) => {
   if (values.length === 0) {
@@ -19,7 +20,9 @@ const oneOf = <T extends unknown>(values: readonly T[]) => {
 
 export const allowErc20Approve = (tokens: readonly `0x${string}`[], spenders: readonly `0x${string}`[]) =>
   forAll(tokens, {
-    signature: 'approve(address,uint256)',
+    send: false,
+    delegatecall: false,
+    selector: Erc20Interface.getFunction('approve').selector as `0x${string}`,
     condition: c.calldataMatches([oneOf(spenders)], ['address', 'uint256']),
   })
 
@@ -30,39 +33,48 @@ export const allowWrappingNativeTokens = (tokenAddress: `0x${string}`): Permissi
   selector: WrappedNativeTokenInterface.getFunction('deposit')!.selector as `0x${string}`,
 })
 
-export const createAllowanceKey = (tokenAddress: `0x${string}`, buyOrSell: 'buy' | 'sell'): `0x${string}` =>
-  keccak256(ethers.concat([tokenAddress, buyOrSell === 'buy' ? '0x00' : '0x01'])) as `0x${string}`
+export const allowUnwrappingNativeTokens = (tokenAddress: `0x${string}`): Permission => ({
+  targetAddress: tokenAddress,
+  send: false,
+  delegatecall: false,
+  selector: WrappedNativeTokenInterface.getFunction('withdraw')!.selector as `0x${string}`,
+})
 
 export const allowCreatingOrders = (
-  chainId: keyof typeof SwapperRoleContracts,
+  safe: SafeInfo,
   sellTokens: `0x${string}`[],
-  receiver: `0x${string}`,
   amountAllowanceKey?: `0x${string}`,
-): Permission => ({
-  targetAddress: SwapperRoleContracts[chainId].cowSwap.orderSigner,
-  delegatecall: true,
-  selector: CowOrderSignerInterface.getFunction('signOrder')!.selector as `0x${string}`,
-  condition: c.calldataMatches(
-    [
-      c.matches([
-        oneOf(sellTokens),
-        c.pass,
-        c.eq(receiver),
-        amountAllowanceKey ? c.withinAllowance(amountAllowanceKey) : c.pass,
-        c.pass,
-        c.pass,
-        c.pass,
-        c.pass,
-        c.pass,
-        c.pass,
-        c.pass,
-        c.pass,
-      ]),
-    ],
-    [
-      GPv2OrderStructAbi[0], // order struct
-      'uint32', // validDuration
-      'uint256', // feeAmountBP
-    ],
-  ),
-})
+): Permission => {
+  if (!isSwapperRoleChain(safe.chainId)) {
+    throw new Error('Unsupported chain')
+  }
+
+  const signOrder = CowOrderSignerInterface.getFunction('signOrder')!
+  const orderStruct = `tuple(${signOrder.inputs[0].components!.map((x) => x.type).join(',')})`
+
+  return {
+    targetAddress: SwapperRoleContracts[safe.chainId].cowSwap.orderSigner,
+    send: false,
+    delegatecall: true, // Delegate call is required for signing orders
+    selector: signOrder.selector as `0x${string}`,
+    condition: c.calldataMatches(
+      [
+        c.matches([
+          oneOf(sellTokens),
+          c.pass,
+          c.eq(safe.address.value),
+          amountAllowanceKey ? c.withinAllowance(amountAllowanceKey) : c.pass,
+          c.pass,
+          c.pass,
+          c.pass,
+          c.pass,
+          c.pass,
+          c.pass,
+          c.pass,
+          c.pass,
+        ]),
+      ],
+      [orderStruct, 'uint32', 'uint256'],
+    ),
+  }
+}

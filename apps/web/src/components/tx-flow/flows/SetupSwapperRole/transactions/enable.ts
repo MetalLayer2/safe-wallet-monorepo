@@ -5,36 +5,33 @@ import type { MetaTransactionData } from '@safe-global/safe-core-sdk-types'
 import type { SafeInfo } from '@safe-global/safe-gateway-typescript-sdk'
 import type { Allowance, Permission } from 'zodiac-roles-sdk'
 
-import { SwapperRoleContracts } from './constants'
-import { allowErc20Approve, allowWrappingNativeTokens, allowCreatingOrders, createAllowanceKey } from './permissions'
+import { isSwapperRoleChain, SWAPPER_ROLE_KEY, SwapperRoleContracts } from './constants'
+import {
+  allowErc20Approve,
+  allowWrappingNativeTokens,
+  allowCreatingOrders,
+  allowUnwrappingNativeTokens,
+} from './permissions'
+import { createAllowanceKey } from './allowances'
 
 // TODO: Set this dynamically
-const SWAPPER_ADDRESS = '0xB5E64e857bb7b5350196C5BAc8d639ceC1072745'
-export const SWAPPER_ROLE_KEY = 'SafeSwapperRole'
+const SWAPPER_ADDRESS = '0x3326c5D84bd462Ec1CadA0B5bBa9b2B85059FCba'
 
 const SafeInterface = Safe__factory.createInterface()
 
-function isSupportChain(chainId: string): chainId is keyof typeof SwapperRoleContracts {
-  return chainId in SwapperRoleContracts
-}
-
-function getSaltNonce(): `0x${string}` {
-  return id('Vibez' + Date.now()) as `0x${string}`
-}
-
 export async function enableSwapper(safe: SafeInfo): Promise<Array<MetaTransactionData>> {
-  if (!isSupportChain(safe.chainId)) {
+  if (!isSwapperRoleChain(safe.chainId)) {
     throw new Error('Unsupported chain')
   }
 
   const transactions = setUpRolesMod({
     avatar: safe.address.value as `0x${string}`,
-    saltNonce: getSaltNonce(),
+    saltNonce: id(SWAPPER_ROLE_KEY + Date.now()) as `0x${string}`,
   })
 
+  const enableModuleFragment = SafeInterface.getFunction('enableModule')!
   const enableModule = transactions.find((transaction) => {
-    const fragment = SafeInterface.getFunction('enableModule')
-    return fragment && transaction.data.startsWith(fragment.selector)
+    return transaction.data.startsWith(enableModuleFragment.selector)
   })
 
   if (!enableModule) {
@@ -45,23 +42,27 @@ export async function enableSwapper(safe: SafeInfo): Promise<Array<MetaTransacti
 
   const permissions: Array<Permission> = []
 
+  const { weth } = SwapperRoleContracts[safe.chainId]
+
   // Allow ERC-20 approve for CowSwap on WETH
-  permissions.push(
-    ...allowErc20Approve(
-      [SwapperRoleContracts[safe.chainId].weth],
-      [SwapperRoleContracts[safe.chainId].cowSwap.gpv2VaultRelayer],
-    ),
-  )
+  permissions.push(...allowErc20Approve([weth], [SwapperRoleContracts[safe.chainId].cowSwap.gpv2VaultRelayer]))
 
   // Allow wrapping of WETH
-  permissions.push(allowWrappingNativeTokens(SwapperRoleContracts[safe.chainId].weth))
+  permissions.push(allowWrappingNativeTokens(weth))
 
-  // Create allowance
+  // Allow unwrapping of WETH
+  permissions.push(allowUnwrappingNativeTokens(weth))
+
   const allowances: Allowance[] = []
 
+  // Create allowance for WETH
   const maxAmount = BigInt(10 ** 18 * 0.01)
 
-  const allowanceKey = createAllowanceKey(SwapperRoleContracts[safe.chainId].weth, 'sell')
+  const allowanceKey = createAllowanceKey({
+    swapperAddress: SWAPPER_ADDRESS,
+    tokenAddress: weth,
+    buyOrSell: 'sell',
+  })
 
   allowances.push({
     key: allowanceKey,
@@ -72,11 +73,10 @@ export async function enableSwapper(safe: SafeInfo): Promise<Array<MetaTransacti
     timestamp: BigInt(Math.floor(Date.now() / 1000)),
   })
 
+  // Apply allowances
   transactions.push(
     ...(
       await applyAllowances(allowances, {
-        address: rolesModifierAddress,
-        chainId: Number(safe.chainId) as 11155111,
         currentAllowances: [],
         mode: 'extend',
       })
@@ -88,14 +88,7 @@ export async function enableSwapper(safe: SafeInfo): Promise<Array<MetaTransacti
   )
 
   // Allow creating orders using OrderSigner
-  permissions.push(
-    allowCreatingOrders(
-      safe.chainId,
-      [SwapperRoleContracts[safe.chainId].weth],
-      safe.address.value as `0x${string}`,
-      allowanceKey,
-    ),
-  )
+  permissions.push(allowCreatingOrders(safe, [weth], allowanceKey))
 
   transactions.push(
     ...setUpRoles({
