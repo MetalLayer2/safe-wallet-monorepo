@@ -12,10 +12,26 @@ import {
   SWAPPER_ROLE_KEY,
   SwapperRoleContracts,
 } from '../tx-flow/flows/SetupSwapperRole/transactions/constants'
-import { AbiCoder, getAddress, Interface } from 'ethers'
+import { AbiCoder, Contract, getAddress, Interface } from 'ethers'
 import { sameAddress } from '@safe-global/utils/utils/addresses'
+import { useWeb3 } from '@/hooks/wallets/web3'
 
 const CowOrderSignerInterface = new Interface(CowOrderSignerAbi)
+const RolesModifierInterface = new Interface([
+  {
+    inputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
+    name: 'allowances',
+    outputs: [
+      { internalType: 'uint128', name: 'refill', type: 'uint128' },
+      { internalType: 'uint128', name: 'maxRefill', type: 'uint128' },
+      { internalType: 'uint64', name: 'period', type: 'uint64' },
+      { internalType: 'uint128', name: 'balance', type: 'uint128' },
+      { internalType: 'uint64', name: 'timestamp', type: 'uint64' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+])
 
 const defaultAbiCoder = AbiCoder.defaultAbiCoder()
 
@@ -77,8 +93,8 @@ const SetupSwapperRoleButton = (): ReactElement => {
       let sellToken: string | undefined
       let buyToken: string | undefined
       let receiver: string | undefined
-      let sellAmount: string | undefined
-      let buyAmount: string | undefined
+      let sellAmountAllowanceKey: string | undefined
+      let buyAmountAllowanceKey: string | undefined
 
       if (_sellToken.operator === Operator.EqualTo && _sellToken.compValue) {
         sellToken = getAddress(`0x${_sellToken.compValue.slice(-40)}`)
@@ -92,17 +108,19 @@ const SetupSwapperRoleButton = (): ReactElement => {
 
       // TODO: How do we decode these?
       if (_sellAmount.operator === Operator.WithinAllowance && _sellAmount.compValue) {
-        ;[sellAmount] = defaultAbiCoder.decode(['uint128'], _sellAmount.compValue)
+        const [allowanceKey] = defaultAbiCoder.decode(['bytes32'], _sellAmount.compValue)
+        sellAmountAllowanceKey = allowanceKey
       }
       if (_buyAmount.operator === Operator.WithinAllowance && _buyAmount.compValue) {
-        ;[buyAmount] = defaultAbiCoder.decode(['uint128'], _buyAmount.compValue)
+        const [allowanceKey] = defaultAbiCoder.decode(['bytes32'], _buyAmount.compValue)
+        buyAmountAllowanceKey = allowanceKey
       }
       return {
         sellToken,
         buyToken,
         receiver,
-        sellAmount,
-        buyAmount,
+        sellAmountAllowanceKey,
+        buyAmountAllowanceKey,
       }
     })
   })()
@@ -135,14 +153,16 @@ const SetupSwapperRoleButton = (): ReactElement => {
                 if (allowance?.sellToken) {
                   return (
                     <li key={index}>
-                      SELL {allowance.sellToken} {allowance.sellAmount}
+                      SELL {allowance.sellToken}{' '}
+                      <Allowance rolesModifierAddress={firstModule!} allowanceKey={allowance.sellAmountAllowanceKey!} />
                     </li>
                   )
                 }
                 if (allowance?.buyToken) {
                   return (
                     <li key={index}>
-                      BUY {allowance.buyToken} {allowance.buyAmount}
+                      BUY {allowance.buyToken}{' '}
+                      <Allowance rolesModifierAddress={firstModule!} allowanceKey={allowance.buyAmountAllowanceKey!} />
                     </li>
                   )
                 }
@@ -159,6 +179,21 @@ const SetupSwapperRoleButton = (): ReactElement => {
       </Grid2>
     </Paper>
   )
+}
+
+function Allowance({ rolesModifierAddress, allowanceKey }: { rolesModifierAddress: string; allowanceKey: string }) {
+  const web3 = useWeb3()
+
+  const [allowance] = useAsync(async () => {
+    if (!web3) {
+      return
+    }
+    const signer = await web3.getSigner()
+    const rolesModifier = new Contract(rolesModifierAddress, RolesModifierInterface, signer)
+    return rolesModifier.allowances(allowanceKey)
+  }, [allowanceKey, rolesModifierAddress, web3])
+
+  return <>{allowance?.balance ?? 'Loading...'}</>
 }
 
 export default SetupSwapperRoleButton
