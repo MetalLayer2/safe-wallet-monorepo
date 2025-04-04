@@ -26,6 +26,7 @@ export const allowErc20Approve = (tokens: readonly `0x${string}`[], spenders: re
     condition: c.calldataMatches([oneOf(spenders)], ['address', 'uint256']),
   })
 
+// TODO: Add c.etherWithinAllowance to this?
 export const allowWrappingNativeTokens = (tokenAddress: `0x${string}`): Permission => ({
   targetAddress: tokenAddress,
   send: true,
