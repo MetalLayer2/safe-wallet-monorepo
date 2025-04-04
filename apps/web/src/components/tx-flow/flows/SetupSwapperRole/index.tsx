@@ -65,11 +65,16 @@ const SetupSwapperRole = (): ReactElement => {
       },
       {
         txLayoutProps: { title: 'Confirm Swapper set up' },
-        content: <SetupSwapperRoleReview data={data} />,
+        content: (
+          <SetupSwapperRoleReview
+            data={data}
+            onSubmit={(formData: SetupSwapperRoleData) => nextStep({ ...data, ...formData })}
+          />
+        ),
       },
       {
         txLayoutProps: { title: 'Confirm transaction details', fixedNonce: true },
-        content: <ConfirmTxDetails />,
+        content: <ConfirmTxDetails onSubmit={() => {}} />,
       },
     ],
     [data, nextStep],

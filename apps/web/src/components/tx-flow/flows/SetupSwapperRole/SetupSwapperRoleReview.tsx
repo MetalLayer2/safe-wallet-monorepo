@@ -9,7 +9,13 @@ import { SafeTxContext } from '../../SafeTxProvider'
 import TxCard from '../../common/TxCard'
 import { type SetupSwapperRoleData } from '.'
 
-const SetupSwapperRoleReview = ({ data }: { data: SetupSwapperRoleData }): ReactElement => {
+const SetupSwapperRoleReview = ({
+  data,
+  onSubmit,
+}: {
+  data: SetupSwapperRoleData
+  onSubmit: (data: SetupSwapperRoleData) => void
+}): ReactElement => {
   const { safe } = useSafeInfo()
   const sdk = useSafeSDK()
   const { setSafeTx, setSafeTxError } = useContext(SafeTxContext)
@@ -43,7 +49,7 @@ const SetupSwapperRoleReview = ({ data }: { data: SetupSwapperRoleData }): React
 
   return (
     <TxCard>
-      <ReviewTransaction />
+      <ReviewTransaction onSubmit={() => onSubmit(data)} />
     </TxCard>
   )
 }
