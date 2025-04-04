@@ -5,7 +5,7 @@ import type { MetaTransactionData } from '@safe-global/safe-core-sdk-types'
 import type { SafeInfo } from '@safe-global/safe-gateway-typescript-sdk'
 import type { Allowance, Permission } from 'zodiac-roles-sdk'
 
-import { isSwapperRoleChain, SWAPPER_ROLE_KEY, SwapperRoleContracts } from './constants'
+import { SwapperRoleContracts } from './constants'
 import {
   allowErc20Approve,
   allowWrappingNativeTokens,
@@ -14,13 +14,19 @@ import {
 } from './permissions'
 import { createAllowanceKey } from './allowances'
 
-// TODO: Set this dynamically
-const SWAPPER_ADDRESS = '0x3326c5D84bd462Ec1CadA0B5bBa9b2B85059FCba'
+export const SWAPPER_ROLE_KEY = 'SafeSwapperRole'
 
 const SafeInterface = Safe__factory.createInterface()
 
-export async function enableSwapper(safe: SafeInfo): Promise<Array<MetaTransactionData>> {
-  if (!isSwapperRoleChain(safe.chainId)) {
+function isSupportChain(chainId: string): chainId is keyof typeof SwapperRoleContracts {
+  return chainId in SwapperRoleContracts
+}
+
+export async function enableSwapper(
+  safe: SafeInfo,
+  swapperAddress: `0x${string}`,
+): Promise<Array<MetaTransactionData>> {
+  if (!isSupportChain(safe.chainId)) {
     throw new Error('Unsupported chain')
   }
 
@@ -59,7 +65,7 @@ export async function enableSwapper(safe: SafeInfo): Promise<Array<MetaTransacti
   const maxAmount = BigInt(10 ** 18 * 0.01)
 
   const allowanceKey = createAllowanceKey({
-    swapperAddress: SWAPPER_ADDRESS,
+    swapperAddress,
     tokenAddress: weth,
     buyOrSell: 'sell',
   })
@@ -96,7 +102,7 @@ export async function enableSwapper(safe: SafeInfo): Promise<Array<MetaTransacti
       roles: [
         {
           key: SWAPPER_ROLE_KEY,
-          members: [SWAPPER_ADDRESS],
+          members: [swapperAddress],
           permissions,
         },
       ],
