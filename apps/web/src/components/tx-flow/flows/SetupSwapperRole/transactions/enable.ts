@@ -24,7 +24,7 @@ function isSupportChain(chainId: string): chainId is keyof typeof SwapperRoleCon
 
 export async function enableSwapper(
   safe: SafeInfo,
-  swapperAddress: `0x${string}`,
+  members: Array<`0x${string}`>,
   config: Array<{
     token: `0x${string}`
     amount: bigint
@@ -67,11 +67,7 @@ export async function enableSwapper(
 
   // Format allowances
   const allowances = config.map<Allowance>((config) => {
-    const allowanceKey = createAllowanceKey({
-      swapperAddress,
-      tokenAddress: config.token,
-      buyOrSell: config.type,
-    })
+    const allowanceKey = createAllowanceKey(config.token, config.type)
 
     return {
       key: allowanceKey,
@@ -102,11 +98,7 @@ export async function enableSwapper(
     allowCreatingOrders(
       safe,
       config.map((config) => {
-        const allowanceKey = createAllowanceKey({
-          swapperAddress,
-          tokenAddress: config.token,
-          buyOrSell: config.type,
-        })
+        const allowanceKey = createAllowanceKey(config.token, config.type)
         return {
           token: config.token,
           amount: config.amount,
@@ -123,7 +115,7 @@ export async function enableSwapper(
       roles: [
         {
           key: SWAPPER_ROLE_KEY,
-          members: [swapperAddress],
+          members,
           permissions,
         },
       ],
