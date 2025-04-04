@@ -7,16 +7,18 @@ import { SWAPPER_ROLE_KEY } from './constants'
 import type { ConnectedWallet } from '@/hooks/wallets/useOnboard'
 import type { SafeInfo } from '@safe-global/safe-gateway-typescript-sdk'
 import { encodeMultiSendData } from '@safe-global/protocol-kit'
+import { Multi_send__factory } from '@safe-global/utils/types/contracts'
 
 const COW_SWAP_API = {
   ['11155111']: 'https://api.cow.fi/sepolia',
 }
 
 // setTransactionUnwrapper is called with this by default in setUpRolesMod
-const MULTI_SEND_CALL_ONLY = '0x9641d764fc13c8B624c04430C7356C1C7C8102e2'
+const MULTI_SEND = '0x38869bf66a61cF6bDB996A6aE40D5853Fd43B526'
 
 const CowOrderSignerInterface = new Interface(CowOrderSignerAbi)
 const GPv2Interface = new Interface(['function setPreSignature(bytes,bool)'])
+const MultiSendInterface = Multi_send__factory.createInterface()
 const RolesModifierInterface = new Interface([
   'function execTransactionWithRole(address,uint256,bytes,uint8,bytes32,bool)',
 ])
@@ -77,8 +79,10 @@ export async function signAsSwapper(wallet: ConnectedWallet, transactions: Array
 
   const isMultiSend = txs.length > 1
 
-  const recipient = isMultiSend ? MULTI_SEND_CALL_ONLY : transactions[0].to
-  const data = isMultiSend ? encodeMultiSendData(txs) : txs[0].data
+  const recipient = isMultiSend ? MULTI_SEND : txs[0].to
+  const data = isMultiSend
+    ? MultiSendInterface.encodeFunctionData('multiSend', [encodeMultiSendData(txs)])
+    : txs[0].data
 
   const execTransactionWithRoleData = RolesModifierInterface.encodeFunctionData('execTransactionWithRole', [
     recipient,
