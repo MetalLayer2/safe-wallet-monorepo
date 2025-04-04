@@ -8,6 +8,7 @@ import { enableSwapper } from './transactions/enable'
 import { SafeTxContext } from '../../SafeTxProvider'
 import TxCard from '../../common/TxCard'
 import { type SetupSwapperRoleData } from '.'
+import { isSwapperRoleChain, SwapperRoleContracts } from './transactions/constants'
 
 const SetupSwapperRoleReview = ({
   data,
@@ -24,7 +25,24 @@ const SetupSwapperRoleReview = ({
     if (!sdk) return
 
     const createTx = async () => {
-      const transactions = await enableSwapper(safe, data.swapperAddress as `0x${string}`)
+      if (!isSwapperRoleChain(safe.chainId)) {
+        throw new Error('Unsupported chain')
+      }
+      const { weth } = SwapperRoleContracts[safe.chainId]
+      const transactions = await enableSwapper(safe, data.swapperAddress as `0x${string}`, [
+        {
+          token: weth,
+          amount: BigInt(10 ** 18 * 0.05),
+          type: 'sell',
+          periodInSeconds: 5 * 60,
+        },
+        {
+          token: weth,
+          amount: BigInt(10 ** 18 * 0.05),
+          type: 'buy',
+          periodInSeconds: 5 * 60,
+        },
+      ])
       return await sdk.createTransaction({ transactions, onlyCalls: true })
     }
 

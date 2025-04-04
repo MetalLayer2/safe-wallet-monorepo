@@ -42,8 +42,12 @@ export const allowUnwrappingNativeTokens = (tokenAddress: `0x${string}`): Permis
 
 export const allowCreatingOrders = (
   safe: SafeInfo,
-  sellTokens: `0x${string}`[],
-  amountAllowanceKey?: `0x${string}`,
+  config: Array<{
+    token: `0x${string}`
+    amount: bigint
+    type: 'sell' | 'buy'
+    allowanceKey: `0x${string}`
+  }>,
 ): Permission => {
   if (!isSwapperRoleChain(safe.chainId)) {
     throw new Error('Unsupported chain')
@@ -52,19 +56,18 @@ export const allowCreatingOrders = (
   const signOrder = CowOrderSignerInterface.getFunction('signOrder')!
   const orderStruct = `tuple(${signOrder.inputs[0].components!.map((x) => x.type).join(',')})`
 
-  return {
-    targetAddress: SwapperRoleContracts[safe.chainId].cowSwap.orderSigner,
-    send: false,
-    delegatecall: true, // Delegate call is required for signing orders
-    selector: signOrder.selector as `0x${string}`,
-    condition: c.calldataMatches(
+  const conditions = config.map((condition) => {
+    const isSell = condition.type === 'sell'
+    const isBuy = condition.type === 'buy'
+
+    return c.calldataMatches(
       [
         c.matches([
-          oneOf(sellTokens),
-          c.pass,
+          isSell ? c.eq(condition.token) : c.pass,
+          isBuy ? c.eq(condition.token) : c.pass,
           c.eq(safe.address.value),
-          amountAllowanceKey ? c.withinAllowance(amountAllowanceKey) : c.pass,
-          c.pass,
+          isSell ? c.withinAllowance(condition.allowanceKey) : c.pass,
+          isBuy ? c.withinAllowance(condition.allowanceKey) : c.pass,
           c.pass,
           c.pass,
           c.pass,
@@ -75,6 +78,14 @@ export const allowCreatingOrders = (
         ]),
       ],
       [orderStruct, 'uint32', 'uint256'],
-    ),
+    )
+  })
+
+  return {
+    targetAddress: SwapperRoleContracts[safe.chainId].cowSwap.orderSigner,
+    send: false,
+    delegatecall: true, // Delegate call is required for signing orders
+    selector: signOrder.selector as `0x${string}`,
+    condition: oneOf(conditions),
   }
 }

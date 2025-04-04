@@ -25,6 +25,12 @@ function isSupportChain(chainId: string): chainId is keyof typeof SwapperRoleCon
 export async function enableSwapper(
   safe: SafeInfo,
   swapperAddress: `0x${string}`,
+  config: Array<{
+    token: `0x${string}`
+    amount: bigint
+    type: 'sell' | 'buy'
+    periodInSeconds: number
+  }>,
 ): Promise<Array<MetaTransactionData>> {
   if (!isSupportChain(safe.chainId)) {
     throw new Error('Unsupported chain')
@@ -59,24 +65,22 @@ export async function enableSwapper(
   // Allow unwrapping of WETH
   permissions.push(allowUnwrappingNativeTokens(weth))
 
-  const allowances: Allowance[] = []
+  // Format allowances
+  const allowances = config.map<Allowance>((config) => {
+    const allowanceKey = createAllowanceKey({
+      swapperAddress,
+      tokenAddress: config.token,
+      buyOrSell: config.type,
+    })
 
-  // Create allowance for WETH
-  const maxAmount = BigInt(10 ** 18 * 0.01)
-
-  const allowanceKey = createAllowanceKey({
-    swapperAddress,
-    tokenAddress: weth,
-    buyOrSell: 'sell',
-  })
-
-  allowances.push({
-    key: allowanceKey,
-    balance: maxAmount,
-    refill: maxAmount,
-    maxRefill: maxAmount,
-    period: BigInt(5 * 60),
-    timestamp: BigInt(Math.floor(Date.now() / 1000)),
+    return {
+      key: allowanceKey,
+      balance: config.amount,
+      refill: config.amount,
+      maxRefill: config.amount,
+      period: BigInt(config.periodInSeconds),
+      timestamp: BigInt(0), // TODO: Check if this is correct
+    }
   })
 
   // Apply allowances
@@ -94,7 +98,24 @@ export async function enableSwapper(
   )
 
   // Allow creating orders using OrderSigner
-  permissions.push(allowCreatingOrders(safe, [weth], allowanceKey))
+  permissions.push(
+    allowCreatingOrders(
+      safe,
+      config.map((config) => {
+        const allowanceKey = createAllowanceKey({
+          swapperAddress,
+          tokenAddress: config.token,
+          buyOrSell: config.type,
+        })
+        return {
+          token: config.token,
+          amount: config.amount,
+          type: config.type,
+          allowanceKey,
+        }
+      }),
+    ),
+  )
 
   transactions.push(
     ...setUpRoles({
