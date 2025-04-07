@@ -27,17 +27,15 @@ const getPendingPoliciesEvents = async (
   safeAddress: string,
   confirmedPolicies: PolicyEvent[],
 ) => {
-  const policiesFilter = policyGuardContract.filters.PolicyConfigured()
+  const policiesFilter = policyGuardContract.filters.PolicyConfigured(safeAddress)
   const policies = (await policyGuardContract.queryFilter(
     policiesFilter,
     7999262,
     'latest',
   )) as unknown as PolicyEvent[]
 
-  // TODO: Once the safe parameter in the onchain event is indexed the safeAddress filter should be filtered in `policiesFilter`
   const safePolicies = policies.filter(
     (event) =>
-      sameAddress(event.args?.safe, safeAddress) &&
       !confirmedPolicies.some(
         (confirmedPolicy) =>
           sameAddress(confirmedPolicy.args.safe, event.args?.safe) &&
@@ -52,7 +50,7 @@ const getPendingPoliciesEvents = async (
 }
 
 const getConfirmedPoliciesEvents = async (policyGuardContract: Contract, safeAddress: string) => {
-  const policiesFilter = policyGuardContract.filters.PolicyConfirmed(safeAddress, null)
+  const policiesFilter = policyGuardContract.filters.PolicyConfirmed(safeAddress)
   const safePolicies = (await policyGuardContract.queryFilter(
     policiesFilter,
     7999262,
@@ -84,6 +82,8 @@ const PoliciesSettings = () => {
         safeConfirmedPolicies,
       )
 
+      console.log('safeConfirmedPolicies events', safeConfirmedPolicies)
+      console.log('safePendingPolicies events', safePendingPolicies)
       setConfirmedPolicies(safeConfirmedPolicies)
       setPendingPolicies(safePendingPolicies)
     }

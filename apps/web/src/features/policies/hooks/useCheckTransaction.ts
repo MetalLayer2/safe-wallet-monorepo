@@ -1,5 +1,6 @@
+
 import useAsync from '@/hooks/useAsync'
-import { getPolicyGuardContract } from '../utils/contracts'
+import { getPolicyGuardContractSDK } from '../contracts/policyContracts'
 
 export type TransactionParameters = {
   safe: string
@@ -13,11 +14,14 @@ export type TransactionParameters = {
 export const useCheckTransaction = ({ safe, to, value, data, operation, context }: TransactionParameters) => {
   context = context ?? '0x'
   return useAsync(async () => {
-    const policyGuard = getPolicyGuardContract()
+    const policyGuard = getPolicyGuardContractSDK()
+    console.log('checkTransaction')
     try {
-      await policyGuard.checkTransaction.staticCall(safe, to, value, data, operation, context)
+      const asdf = await policyGuard.checkTransaction.staticCall(safe, to, value, data, operation, context)
+      console.log('checkTransaction success', asdf)
       return true
     } catch (err) {
+      console.log('checkTransaction error')
       console.warn(err)
       return false
     }

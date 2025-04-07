@@ -1,5 +1,5 @@
 {
-  "safePolicyGuard": "0xD50949992d78ee236BAD3B75D8014518Fbc74d52",
+  "safePolicyGuard": "0x173F77D1cbb504045877AF7D0f767907DE4eb2a4",
   "policies": {
     "allowPolicy": "0x8A11eE51313594aC1F0625ded905A07Ff8254eB0",
     "coSignerPolicy": "0x8BE926BA33924DB5699A6461284580aF3e8675D0",

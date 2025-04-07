@@ -1,6 +1,6 @@
+import policyContracts from '@/features/policies/contracts/contracts.json'
 import useSafeInfo from '@/hooks/useSafeInfo'
 import { sameAddress } from '@/utils/addresses'
-import { POLICY_GUARD } from '../config/constants'
 
 /**
  * Checks that the user's Safe is enabled for policies
@@ -8,7 +8,7 @@ import { POLICY_GUARD } from '../config/constants'
  */
 const useIsPoliciesEnabled = () => {
   const { safe } = useSafeInfo()
-  return sameAddress(safe.guard?.value, POLICY_GUARD)
+  return sameAddress(safe.guard?.value, policyContracts.safePolicyGuard)
 }
 
 export default useIsPoliciesEnabled
