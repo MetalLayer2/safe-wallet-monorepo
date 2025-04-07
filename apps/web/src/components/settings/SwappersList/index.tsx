@@ -1,4 +1,4 @@
-import { Box, Button, Grid2, SvgIcon, Typography } from '@mui/material'
+import { Box, Button, Grid2, IconButton, SvgIcon, Tooltip, Typography } from '@mui/material'
 import { AbiCoder, Contract, getAddress, Interface, isHexString } from 'ethers'
 import { sameAddress } from '@safe-global/utils/utils/addresses'
 import { formatVisualAmount } from '@safe-global/utils/utils/formatters'
@@ -27,6 +27,9 @@ import AddIcon from '@/public/images/common/add.svg'
 import useBalances from '@/hooks/useBalances'
 import { getERC20TokenInfoOnChain } from '@/utils/tokens'
 import { useSwapperRoleMod } from '@/components/tx-flow/flows/SetupSwapperRole/hooks/useSwapperRoleMod'
+import DeleteIcon from '@/public/images/common/delete.svg'
+import CheckWallet from '@/components/common/CheckWallet'
+import { RemoveAllowance } from '@/components/tx-flow/flows/RemoveAllowance'
 
 const CowOrderSignerInterface = new Interface(CowOrderSignerAbi)
 const RolesModifierInterface = new Interface([
@@ -154,6 +157,7 @@ function AllowanceList({
   role: Role
 }): ReactElement | null {
   const { safe } = useSafeInfo()
+  const { setTxFlow } = useContext(TxModalContext)
 
   const orderSignerTarget = role?.targets.find((target) => {
     if (!isSwapperRoleChain(safe.chainId)) {
@@ -275,12 +279,36 @@ function AllowanceList({
           actions: {
             rawValue: '',
             sticky: true,
-            content: null,
+            content: (
+              <CheckWallet>
+                {(isOk) => (
+                  <Tooltip title={isOk ? 'Remove allowance' : undefined}>
+                    <span>
+                      <IconButton
+                        onClick={() =>
+                          setTxFlow(
+                            <RemoveAllowance
+                              rolesModifierAddress={rolesModifierAddress}
+                              token={token}
+                              allowanceKey={allowanceKey}
+                            />,
+                          )
+                        }
+                        size="small"
+                        disabled={!isOk}
+                      >
+                        <SvgIcon component={DeleteIcon} inheritViewBox color="error" fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                )}
+              </CheckWallet>
+            ),
           },
         },
       }
     })
-  }, [allowances, rolesModifierAddress])
+  }, [allowances, rolesModifierAddress, setTxFlow])
 
   if (rows.length === 0) {
     return null
@@ -299,6 +327,7 @@ function decodeAllowanceKey(compValue: `0x${string}`): string {
   return allowanceKey
 }
 
+const MAX_UINT128 = (BigInt(1) << BigInt(128)) - BigInt(1)
 function AllowanceBalance({
   rolesModifierAddress,
   allowanceKey,
@@ -311,7 +340,7 @@ function AllowanceBalance({
   const web3 = useWeb3()
 
   // TODO: Migrate to RTK query for caching
-  const [allowance] = useAsync<Allowance>(async () => {
+  const [allowance] = useAsync<Allowance | undefined>(async () => {
     if (!web3) {
       return
     }
@@ -322,6 +351,16 @@ function AllowanceBalance({
 
   if (!allowance) {
     return null
+  }
+
+  const isUnset =
+    allowance.balance === BigInt(0) &&
+    allowance.period === BigInt(0) &&
+    allowance.refill === BigInt(0) &&
+    allowance.maxRefill === MAX_UINT128
+
+  if (isUnset) {
+    return <>Unset</>
   }
 
   return <AllowanceBalanceItem allowance={allowance} token={token} />
