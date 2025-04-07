@@ -1,4 +1,3 @@
-import { Chip } from '@/components/common/Chip'
 import EnhancedTable from '@/components/common/EnhancedTable'
 import tableCss from '@/components/common/EnhancedTable/styles.module.css'
 import OnlyOwner from '@/components/common/OnlyOwner'
@@ -91,7 +90,7 @@ const ProposersList = () => {
 
           <Grid item xs>
             <Typography fontWeight="bold" mb={2}>
-              Proposers <Chip label="New" sx={{ backgroundColor: 'secondary.light', color: 'static.main' }} />
+              Proposers
             </Typography>
             <Typography mb={2}>
               Proposers can suggest transactions but cannot approve or execute them. Signers should review and approve
