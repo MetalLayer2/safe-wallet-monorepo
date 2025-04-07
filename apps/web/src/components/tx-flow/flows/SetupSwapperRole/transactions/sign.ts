@@ -23,7 +23,12 @@ const RolesModifierInterface = new Interface([
   'function execTransactionWithRole(address,uint256,bytes,uint8,bytes32,bool)',
 ])
 
-export async function signAsSwapper(wallet: ConnectedWallet, transactions: Array<BaseTransaction>, safeInfo: SafeInfo) {
+export async function signAsSwapper(
+  wallet: ConnectedWallet,
+  transactions: Array<BaseTransaction>,
+  safeInfo: SafeInfo,
+  swapperRoleMod: string,
+) {
   const txs = await Promise.all(
     transactions.map(async (transaction) => {
       const isSetPreSignature = transaction.data.startsWith(GPv2Interface.getFunction('setPreSignature')!.selector)
@@ -70,13 +75,6 @@ export async function signAsSwapper(wallet: ConnectedWallet, transactions: Array
     }),
   )
 
-  // TODO: Safely find Roles Modifier
-  const firstModule = safeInfo.modules?.[0]
-
-  if (!firstModule) {
-    throw new Error('No module found')
-  }
-
   const isMultiSend = txs.length > 1
 
   const recipient = isMultiSend ? MULTI_SEND : txs[0].to
@@ -97,7 +95,7 @@ export async function signAsSwapper(wallet: ConnectedWallet, transactions: Array
     method: 'eth_sendTransaction',
     params: [
       {
-        to: firstModule.value,
+        to: swapperRoleMod,
         from: wallet.address,
         data: execTransactionWithRoleData,
         value: '0x0',

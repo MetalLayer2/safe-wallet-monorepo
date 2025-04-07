@@ -13,6 +13,7 @@ import useWallet from '@/hooks/wallets/useWallet'
 import { Button } from '@mui/material'
 import { signAsSwapper } from '../SetupSwapperRole/transactions/sign'
 import useSafeInfo from '@/hooks/useSafeInfo'
+import { useSwapperRoleMod } from '../SetupSwapperRole/hooks/useSwapperRoleMod'
 
 type ReviewSafeAppsTxProps = {
   safeAppsTx: SafeAppsTxParams
@@ -24,6 +25,8 @@ const ReviewSafeAppsTx = ({ safeAppsTx: { txs, params }, onSubmit, origin }: Rev
   const { setSafeTx, safeTxError, setSafeTxError } = useContext(SafeTxContext)
   const { safe } = useSafeInfo()
   const wallet = useWallet()
+
+  const [swapperRoleMod] = useSwapperRoleMod()
 
   useHighlightHiddenTab()
 
@@ -45,13 +48,15 @@ const ReviewSafeAppsTx = ({ safeAppsTx: { txs, params }, onSubmit, origin }: Rev
   }, [txs, setSafeTx, setSafeTxError, params])
 
   const error = !isTxValid(txs)
-  const canSignAsSwapper = txs.some((tx) => {
-    return tx.data.startsWith(PRE_SIGN_SIGHASH)
-  })
+  const canSignAsSwapper =
+    swapperRoleMod !== undefined &&
+    txs.some((tx) => {
+      return tx.data.startsWith(PRE_SIGN_SIGHASH)
+    })
 
   const vibeExecuteTx = async () => {
-    if (canSignAsSwapper && wallet) {
-      return signAsSwapper(wallet, txs, safe)
+    if (canSignAsSwapper && wallet && swapperRoleMod) {
+      return signAsSwapper(wallet, txs, safe, swapperRoleMod)
     }
   }
 

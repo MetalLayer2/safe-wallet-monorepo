@@ -31,6 +31,7 @@ export const SwapperRoleContracts = {
       gpv2VaultRelayer: '0xC92E8bdf79f0507f65a392b0ab4667716BFE0110',
     },
     weth: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
+    roles: '0x9646fDAD06d3e24444381f44362a3B0eB343D337',
   },
 } as const
 
