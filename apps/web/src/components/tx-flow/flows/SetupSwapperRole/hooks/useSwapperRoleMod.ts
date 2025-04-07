@@ -7,6 +7,7 @@ export const useSwapperRoleMod = () => {
   const { safe } = useSafeInfo()
   const provider = useWeb3ReadOnly()
 
+  // TODO: Migrate to RTK query for caching
   return useAsync(async () => {
     const chainId = safe.chainId
     if (!isSwapperRoleChain(chainId)) {

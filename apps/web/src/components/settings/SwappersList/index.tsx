@@ -1,6 +1,7 @@
 import { Box, Button, Grid2, SvgIcon, Typography } from '@mui/material'
 import { AbiCoder, Contract, getAddress, Interface, isHexString } from 'ethers'
 import { sameAddress } from '@safe-global/utils/utils/addresses'
+import { formatVisualAmount } from '@safe-global/utils/utils/formatters'
 import { fetchRole } from 'zodiac-roles-deployments'
 import { useContext, useMemo } from 'react'
 import { encodeRoleKey, Operator } from 'zodiac-roles-sdk'
@@ -23,6 +24,9 @@ import useAsync from '@/hooks/useAsync'
 import useSafeInfo from '@/hooks/useSafeInfo'
 import { useWeb3 } from '@/hooks/wallets/web3'
 import AddIcon from '@/public/images/common/add.svg'
+import useBalances from '@/hooks/useBalances'
+import { getERC20TokenInfoOnChain } from '@/utils/tokens'
+import { useSwapperRoleMod } from '@/components/tx-flow/flows/SetupSwapperRole/hooks/useSwapperRoleMod'
 
 const CowOrderSignerInterface = new Interface(CowOrderSignerAbi)
 const RolesModifierInterface = new Interface([
@@ -41,29 +45,37 @@ const RolesModifierInterface = new Interface([
   },
 ])
 
+type Allowance = {
+  refill: bigint
+  maxRefill: bigint
+  period: bigint
+  balance: bigint
+  timestamp: bigint
+}
+
 export function SwappersList(): ReactElement {
   const { setTxFlow } = useContext(TxModalContext)
   const { safe } = useSafeInfo()
 
-  // TODO: Find module correctly and migrate to RTK query for caching
-  const firstModule = safe.modules?.[0].value
+  const [rolesMod] = useSwapperRoleMod()
+  // TODO: Migrate to RTK query for caching
   const [role] = useAsync(async () => {
-    if (!firstModule) {
+    if (!rolesMod) {
       return
     }
 
     const roleKey = encodeRoleKey(SWAPPER_ROLE_KEY)
     const chainId = Number(safe.chainId)
-    if (!isHexString(firstModule) || !isHexString(roleKey) || chainId !== 11155111) {
+    if (!isHexString(rolesMod) || !isHexString(roleKey) || chainId !== 11155111) {
       return
     }
 
     return fetchRole({
-      address: firstModule,
+      address: rolesMod,
       roleKey,
       chainId,
     })
-  }, [firstModule, safe.chainId])
+  }, [rolesMod, safe.chainId])
 
   const onAdd = () => {
     setTxFlow(<SetupSwapperRoleFlow />)
@@ -98,7 +110,7 @@ export function SwappersList(): ReactElement {
 
         {role && <MemberList role={role} />}
 
-        {firstModule && role && <AllowanceList rolesModifierAddress={firstModule as `0x${string}`} role={role} />}
+        {rolesMod && role && <AllowanceList rolesModifierAddress={rolesMod as `0x${string}`} role={role} />}
       </Grid2>
     </Grid2>
   )
@@ -256,7 +268,9 @@ function AllowanceList({
           },
           value: {
             rawValue: allowanceKey,
-            content: <AllowanceBalance rolesModifierAddress={rolesModifierAddress} allowanceKey={allowanceKey} />,
+            content: (
+              <AllowanceBalance rolesModifierAddress={rolesModifierAddress} allowanceKey={allowanceKey} token={token} />
+            ),
           },
           actions: {
             rawValue: '',
@@ -288,14 +302,16 @@ function decodeAllowanceKey(compValue: `0x${string}`): string {
 function AllowanceBalance({
   rolesModifierAddress,
   allowanceKey,
+  token,
 }: {
   rolesModifierAddress: string
   allowanceKey: string
-}): ReactElement {
+  token: string
+}): ReactElement | null {
   const web3 = useWeb3()
 
   // TODO: Migrate to RTK query for caching
-  const [allowance] = useAsync(async () => {
+  const [allowance] = useAsync<Allowance>(async () => {
     if (!web3) {
       return
     }
@@ -304,6 +320,42 @@ function AllowanceBalance({
     return rolesModifier.allowances(allowanceKey)
   }, [allowanceKey, rolesModifierAddress, web3])
 
-  // TODO: Format decimals
-  return <>{allowance?.balance ?? 'Loading...'}</>
+  if (!allowance) {
+    return null
+  }
+
+  return <AllowanceBalanceItem allowance={allowance} token={token} />
+}
+
+function AllowanceBalanceItem({ allowance, token }: { allowance: Allowance; token: string }): ReactElement {
+  const web3 = useWeb3()
+  const { balances } = useBalances()
+  const balance = allowance.balance.toString()
+
+  // TODO: Migrate to RTK query for caching
+  const [tokenInfo] = useAsync(async () => {
+    const item = balances.items.find((item) => {
+      return sameAddress(item.tokenInfo.address, token)
+    })
+
+    if (item?.tokenInfo) {
+      return item.tokenInfo
+    }
+
+    if (!web3) {
+      return
+    }
+
+    return getERC20TokenInfoOnChain(token)
+  }, [balances.items, token, web3])
+
+  if (!tokenInfo?.decimals) {
+    return <>{balance}</>
+  }
+
+  return (
+    <>
+      {formatVisualAmount(balance, tokenInfo.decimals)} {tokenInfo.symbol}
+    </>
+  )
 }
