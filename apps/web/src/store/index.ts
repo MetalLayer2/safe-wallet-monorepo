@@ -31,6 +31,7 @@ import { version as termsVersion } from '@/markdown/terms/version'
 import { cgwClient, setBaseUrl } from '@safe-global/store/gateway/cgwClient'
 import { GATEWAY_URL } from '@/config/gateway'
 import { setupListeners } from '@reduxjs/toolkit/query'
+import { swapperApi } from './api/swapper'
 
 const rootReducer = combineReducers({
   [slices.chainsSlice.name]: slices.chainsSlice.reducer,
@@ -61,6 +62,7 @@ const rootReducer = combineReducers({
   [slices.gatewayApi.reducerPath]: slices.gatewayApi.reducer,
   [cgwClient.reducerPath]: cgwClient.reducer,
   [slices.authSlice.reducerPath]: slices.authSlice.reducer,
+  [swapperApi.reducerPath]: swapperApi.reducer,
 })
 
 const persistedSlices: (keyof Partial<RootState>)[] = [
@@ -94,6 +96,7 @@ const middleware: Middleware<{}, RootState>[] = [
   ofacApi.middleware,
   safePassApi.middleware,
   slices.gatewayApi.middleware,
+  swapperApi.middleware,
 ]
 
 const listeners = [

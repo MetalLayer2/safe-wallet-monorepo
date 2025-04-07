@@ -8,18 +8,16 @@ import { ConfirmTxDetails } from '@/components/tx/ConfirmTxDetails'
 import { SetupSwapperRoleAllowances } from './SetupSwapperRoleAllowances'
 import SaveAddressIcon from '@/public/images/common/save-address.svg'
 
+export type SwapperRoleAllowanceData = {
+  token: string
+  amount: string
+  periodInSeconds: number
+}
+
 export type SetupSwapperRoleData = {
   members: Array<{ address: string }>
-  sell: Array<{
-    token: string
-    amount: string
-    periodInSeconds: number
-  }>
-  buy: Array<{
-    token: string
-    amount: string
-    periodInSeconds: number
-  }>
+  sell: Array<SwapperRoleAllowanceData>
+  buy: Array<SwapperRoleAllowanceData>
 }
 
 const SEPOLIA_WETH = '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14'

@@ -56,7 +56,7 @@ export function SetupSwapperRoleAllowances({
   )
 }
 
-const periodsInSeconds = [
+export const SwapperRolePeriodsInSeconds = [
   {
     value: 0,
     label: 'No limit',
@@ -99,7 +99,7 @@ function SetupSwapperRoleAllowancesByType({
                 control={formData.control}
                 render={({ field }) => (
                   <Select fullWidth {...field}>
-                    {periodsInSeconds.map(({ value, label }) => (
+                    {SwapperRolePeriodsInSeconds.map(({ value, label }) => (
                       <MenuItem key={label} value={value}>
                         {label}
                       </MenuItem>

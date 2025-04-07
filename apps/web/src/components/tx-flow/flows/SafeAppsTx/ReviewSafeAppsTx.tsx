@@ -13,7 +13,7 @@ import useWallet from '@/hooks/wallets/useWallet'
 import { Button } from '@mui/material'
 import { signAsSwapper } from '../SetupSwapperRole/transactions/sign'
 import useSafeInfo from '@/hooks/useSafeInfo'
-import { useSwapperRoleMod } from '../SetupSwapperRole/hooks/useSwapperRoleMod'
+import { useGetRolesModifierQuery } from '@/store/api/swapper'
 
 type ReviewSafeAppsTxProps = {
   safeAppsTx: SafeAppsTxParams
@@ -26,7 +26,7 @@ const ReviewSafeAppsTx = ({ safeAppsTx: { txs, params }, onSubmit, origin }: Rev
   const { safe } = useSafeInfo()
   const wallet = useWallet()
 
-  const [swapperRoleMod] = useSwapperRoleMod()
+  const { data: swapperRoleMod } = useGetRolesModifierQuery()
 
   useHighlightHiddenTab()
 
