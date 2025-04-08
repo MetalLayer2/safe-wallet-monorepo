@@ -9,7 +9,7 @@ import { SetupSwapperRoleAllowances } from './SetupSwapperRoleAllowances'
 import SaveAddressIcon from '@/public/images/common/save-address.svg'
 
 export type SwapperRoleAllowanceData = {
-  token: string
+  tokenAddress: string
   amount: string
   periodInSeconds: number
 }
@@ -20,25 +20,11 @@ export type SetupSwapperRoleData = {
   buy: Array<SwapperRoleAllowanceData>
 }
 
-const SEPOLIA_WETH = '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14'
-
 const SetupSwapperRole = (): ReactElement => {
   const { data, step, nextStep, prevStep } = useTxStepper<SetupSwapperRoleData>({
     members: [{ address: '' }],
-    sell: [
-      {
-        token: SEPOLIA_WETH,
-        amount: BigInt(10 ** 18 * 0.01).toString(),
-        periodInSeconds: 60 * 60 * 24,
-      },
-    ],
-    buy: [
-      {
-        token: SEPOLIA_WETH,
-        amount: BigInt(10 ** 18 * 0.01).toString(),
-        periodInSeconds: 60 * 60 * 24,
-      },
-    ],
+    sell: [],
+    buy: [],
   })
 
   const steps = useMemo<TxStep[]>(

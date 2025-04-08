@@ -71,6 +71,7 @@ const TokenAmountInput = ({
 
       // Validate the total amount of the selected token in the multi transfer
       const recipients = getValues(MultiTokenTransferFields.recipients)
+      if (!recipients) return
       const sumAmount = recipients.reduce<bigint>((acc, item) => {
         const value = safeParseUnits(item.amount || '0', decimals) || 0n
         return acc + (sameAddress(item.tokenAddress, tokenAddress) ? value : 0n)

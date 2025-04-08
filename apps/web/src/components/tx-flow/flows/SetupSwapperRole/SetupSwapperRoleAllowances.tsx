@@ -1,14 +1,16 @@
-import { Typography, CardActions, Button, Select, MenuItem, TextField, Grid2, IconButton, SvgIcon } from '@mui/material'
+import { Typography, CardActions, Button, Select, MenuItem, Grid2, IconButton, SvgIcon } from '@mui/material'
 import { Fragment } from 'react'
 import { useForm, useFieldArray, FormProvider, Controller, useFormContext } from 'react-hook-form'
 import type { ReactElement } from 'react'
 import type { UseFieldArrayReturn } from 'react-hook-form'
 
-import AddressBookInput from '@/components/common/AddressBookInput'
 import AddIcon from '@/public/images/common/add.svg'
 import DeleteIcon from '@/public/images/common/delete.svg'
 import TxCard from '../../common/TxCard'
 import type { SetupSwapperRoleData } from '.'
+import { useVisibleBalances } from '@/hooks/useVisibleBalances'
+import TokenAmountInput from '@/components/common/TokenAmountInput'
+import { type SafeBalanceResponse } from '@safe-global/safe-gateway-typescript-sdk'
 
 export function SetupSwapperRoleAllowances({
   data,
@@ -33,17 +35,19 @@ export function SetupSwapperRoleAllowances({
     name: 'buy',
   })
 
+  const { balances: visibleBalances } = useVisibleBalances()
+
   return (
     <TxCard>
       <FormProvider {...formData}>
         <form onSubmit={formData.handleSubmit(onSubmit)}>
           <Typography fontWeight={700}>Sell limits</Typography>
           <Typography mb={2}>Set the amount a Swapper can sell.</Typography>
-          <SetupSwapperRoleAllowancesByType type="sell" fieldArray={sellFieldArray} />
+          <SetupSwapperRoleAllowancesByType type="sell" fieldArray={sellFieldArray} balances={visibleBalances} />
 
           <Typography fontWeight={700}>Buy limits</Typography>
           <Typography mb={2}>Set the amount a Swapper can buy.</Typography>
-          <SetupSwapperRoleAllowancesByType type="buy" fieldArray={buyFieldArray} />
+          <SetupSwapperRoleAllowancesByType type="buy" fieldArray={buyFieldArray} balances={visibleBalances} />
 
           <CardActions>
             <Button type="submit" variant="contained">
@@ -78,9 +82,11 @@ export const SwapperRolePeriodsInSeconds = [
 function SetupSwapperRoleAllowancesByType({
   type,
   fieldArray,
+  balances,
 }: {
   type: 'sell' | 'buy'
   fieldArray: UseFieldArrayReturn<SetupSwapperRoleData, 'sell' | 'buy', 'id'>
+  balances: SafeBalanceResponse
 }) {
   const formData = useFormContext()
 
@@ -89,11 +95,15 @@ function SetupSwapperRoleAllowancesByType({
       <Grid2 container spacing={3}>
         {fieldArray.fields.map((field, index) => (
           <Fragment key={field.id}>
-            <Grid2 size={{ xs: 6 }}>
-              <AddressBookInput name={`${type}.${index}.token`} label={`Token Address ${index + 1}`} />
+            <Grid2 size={{ xs: 8 }}>
+              <TokenAmountInput
+                fieldArray={{ name: type, index }}
+                balances={balances.items}
+                selectedToken={balances.items.find((b) => b.tokenInfo.address === field.tokenAddress)}
+              />
             </Grid2>
 
-            <Grid2 size={{ xs: 5 }}>
+            <Grid2 size={{ xs: 3 }}>
               <Controller
                 name={`${type}.${index}.periodInSeconds`}
                 control={formData.control}
@@ -116,15 +126,6 @@ function SetupSwapperRoleAllowancesByType({
                 </IconButton>
               )}
             </Grid2>
-
-            <Grid2 size={{ xs: 12 }}>
-              <TextField
-                fullWidth
-                label={`Amount ${index + 1}`}
-                type="number"
-                {...formData.register(`${type}.${index}.amount`)}
-              />
-            </Grid2>
           </Fragment>
         ))}
       </Grid2>
@@ -132,7 +133,7 @@ function SetupSwapperRoleAllowancesByType({
       <Button
         onClick={() =>
           fieldArray.append({
-            token: '',
+            tokenAddress: '',
             periodInSeconds: 0,
             amount: '0',
           })

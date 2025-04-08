@@ -33,6 +33,8 @@ const RolesModifierInterface = new Interface([
   },
 ])
 
+const signOrderSelector = CowOrderSignerInterface.getFunction('signOrder')!.selector
+
 const noopBaseQuery = async () => ({ data: null })
 
 const createBadRequestError = (message: string) => ({
@@ -148,14 +150,12 @@ export const swapperApi = createApi({
           return { data: null }
         }
 
-        const signOrderScope = orderSignerTarget.functions.find((func) => {
-          return func.selector === CowOrderSignerInterface.getFunction('signOrder')!.selector
-        })
+        const signOrderScope = orderSignerTarget.functions.find((func) => func.selector === signOrderSelector)
 
         if (!signOrderScope?.condition) {
           return { data: null }
         }
-
+        // TODO: This does not work when having only one sell or buy token
         const signOrderConditions = signOrderScope.condition.children
           ?.find((child) => {
             return 'children' in child
@@ -214,9 +214,7 @@ export const swapperApi = createApi({
           .filter((value) => value != null)
 
         const MAX_UINT128 = (BigInt(1) << BigInt(128)) - BigInt(1)
-
-        const signer = await args.provider.getSigner()
-        const rolesModifier = new Contract(args.rolesModifierAddress, RolesModifierInterface, signer)
+        const rolesModifier = new Contract(args.rolesModifierAddress, RolesModifierInterface, args.provider)
 
         const data = await Promise.all(
           allowances.map(async (a) => {

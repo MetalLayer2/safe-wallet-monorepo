@@ -2,7 +2,6 @@ import { ERC20__factory } from '@safe-global/utils/types/contracts'
 import { Interface } from 'ethers'
 import { c, forAll } from 'zodiac-roles-sdk'
 import type { Permission } from 'zodiac-roles-sdk'
-import type { SafeInfo } from '@safe-global/safe-gateway-typescript-sdk'
 
 import { CowOrderSignerAbi, isSwapperRoleChain, SwapperRoleContracts } from './constants'
 
@@ -42,7 +41,8 @@ export const allowUnwrappingNativeTokens = (tokenAddress: `0x${string}`): Permis
 })
 
 export const allowCreatingOrders = (
-  safe: SafeInfo,
+  safeAddress: `0x${string}`,
+  chainId: string,
   config: Array<{
     token: `0x${string}`
     amount: bigint
@@ -50,7 +50,7 @@ export const allowCreatingOrders = (
     allowanceKey: `0x${string}`
   }>,
 ): Permission => {
-  if (!isSwapperRoleChain(safe.chainId)) {
+  if (!isSwapperRoleChain(chainId)) {
     throw new Error('Unsupported chain')
   }
 
@@ -66,7 +66,7 @@ export const allowCreatingOrders = (
         c.matches([
           isSell ? c.eq(condition.token) : c.pass,
           isBuy ? c.eq(condition.token) : c.pass,
-          c.eq(safe.address.value),
+          c.eq(safeAddress),
           isSell ? c.withinAllowance(condition.allowanceKey) : c.pass,
           isBuy ? c.withinAllowance(condition.allowanceKey) : c.pass,
           c.pass,
@@ -83,7 +83,7 @@ export const allowCreatingOrders = (
   })
 
   return {
-    targetAddress: SwapperRoleContracts[safe.chainId].cowSwap.orderSigner,
+    targetAddress: SwapperRoleContracts[chainId].cowSwap.orderSigner,
     send: false,
     delegatecall: true, // Delegate call is required for signing orders
     selector: signOrder.selector as `0x${string}`,
