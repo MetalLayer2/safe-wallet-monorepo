@@ -25,11 +25,10 @@ const createBadRequestError = (message: string) => ({
   error: { status: 400, statusText: 'Bad Request', data: message },
 })
 
-// TODO: Invalidate with txHistoryTag
-
-export const swapperApi = createApi({
+export const swapperRoleApi = createApi({
   reducerPath: 'swapperApi',
   baseQuery: noopBaseQuery,
+  tagTypes: ['SwapperRole'],
   endpoints: (builder) => ({
     getRolesModifier: builder.query<string | null, { provider: JsonRpcProvider; safe: SafeInfo }>({
       async queryFn(args) {
@@ -63,16 +62,13 @@ export const swapperApi = createApi({
           data: null,
         }
       },
+      providesTags: ['SwapperRole'],
     }),
     getRole: builder.query<
       Role | null,
       { safe: SafeInfo; provider: JsonRpcProvider; roleKey: string; rolesModifierAddress: string }
     >({
       async queryFn(args) {
-        if (!args.rolesModifierAddress) {
-          return { data: null }
-        }
-
         const chainId = Number(args.safe.chainId)
 
         // TODO: Improve type handling
@@ -88,6 +84,7 @@ export const swapperApi = createApi({
           }),
         }
       },
+      providesTags: ['SwapperRole'],
     }),
     getAllowances: builder.query<
       Array<{
@@ -106,10 +103,6 @@ export const swapperApi = createApi({
       { safe: SafeInfo; balances: Balances; provider: JsonRpcProvider; roleKey: string; rolesModifierAddress: string }
     >({
       async queryFn(args) {
-        if (!args.rolesModifierAddress) {
-          return { data: null }
-        }
-
         const chainId = Number(args.safe.chainId)
 
         // TODO: Improve type handling
@@ -123,7 +116,11 @@ export const swapperApi = createApi({
           chainId,
         })
 
-        const orderSignerTarget = role?.targets.find((target) => {
+        if (!role) {
+          return { data: null }
+        }
+
+        const orderSignerTarget = role.targets.find((target) => {
           if (!isSwapperRoleChain(args.safe.chainId)) {
             return false
           }
@@ -241,6 +238,7 @@ export const swapperApi = createApi({
 
         return { data: data.filter((d) => d != null) }
       },
+      providesTags: ['SwapperRole'],
     }),
   }),
 })
@@ -259,9 +257,7 @@ const {
   useGetRolesModifierQuery: _useGetRolesModifierQuery,
   useGetRoleQuery: _useGetRoleQuery,
   useGetAllowancesQuery: _useGetAllowancesQuery,
-} = swapperApi
-
-// TODO: Reconsider the following abstractions
+} = swapperRoleApi
 
 export function useGetRolesModifierQuery() {
   const { safeLoaded, safe } = useSafeInfo()
@@ -270,23 +266,24 @@ export function useGetRolesModifierQuery() {
   return _useGetRolesModifierQuery(safeLoaded && web3ReadOnly ? { provider: web3ReadOnly, safe } : skipToken)
 }
 
-export function useGetRoleQuery(roleKey: string) {
-  const { safe } = useSafeInfo()
+export function useGetRoleQuery(roleKey: string, rolesModifierAddress?: string) {
+  const { safeLoaded, safe } = useSafeInfo()
   const web3ReadOnly = useWeb3ReadOnly()
-  const { data: rolesModifierAddress } = useGetRolesModifierQuery()
 
   return _useGetRoleQuery(
-    web3ReadOnly && rolesModifierAddress ? { provider: web3ReadOnly, safe, roleKey, rolesModifierAddress } : skipToken,
+    safeLoaded && web3ReadOnly && rolesModifierAddress
+      ? { provider: web3ReadOnly, safe, roleKey, rolesModifierAddress }
+      : skipToken,
   )
 }
 
-export function useGetAllowancesQuery(roleKey: string) {
-  const { safe } = useSafeInfo()
+export function useGetAllowancesQuery(roleKey: string, rolesModifierAddress?: string) {
+  const { safeLoaded, safe } = useSafeInfo()
   const web3ReadOnly = useWeb3ReadOnly()
-  const { data: rolesModifierAddress } = useGetRolesModifierQuery()
   const { balances } = useBalances()
+
   return _useGetAllowancesQuery(
-    web3ReadOnly && rolesModifierAddress && balances
+    safeLoaded && web3ReadOnly && rolesModifierAddress && balances
       ? { provider: web3ReadOnly, safe, balances, roleKey, rolesModifierAddress }
       : skipToken,
   )

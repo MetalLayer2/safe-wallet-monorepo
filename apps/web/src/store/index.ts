@@ -22,6 +22,7 @@ import {
   txHistoryListener,
   txQueueListener,
   authListener,
+  safeInfoListener,
 } from './slices'
 import * as slices from './slices'
 import * as hydrate from './useHydrateStore'
@@ -31,7 +32,7 @@ import { version as termsVersion } from '@/markdown/terms/version'
 import { cgwClient, setBaseUrl } from '@safe-global/store/gateway/cgwClient'
 import { GATEWAY_URL } from '@/config/gateway'
 import { setupListeners } from '@reduxjs/toolkit/query'
-import { swapperApi } from './api/swapper-role'
+import { swapperRoleApi } from './api/swapper-role'
 
 const rootReducer = combineReducers({
   [slices.chainsSlice.name]: slices.chainsSlice.reducer,
@@ -62,7 +63,7 @@ const rootReducer = combineReducers({
   [slices.gatewayApi.reducerPath]: slices.gatewayApi.reducer,
   [cgwClient.reducerPath]: cgwClient.reducer,
   [slices.authSlice.reducerPath]: slices.authSlice.reducer,
-  [swapperApi.reducerPath]: swapperApi.reducer,
+  [swapperRoleApi.reducerPath]: swapperRoleApi.reducer,
 })
 
 const persistedSlices: (keyof Partial<RootState>)[] = [
@@ -96,7 +97,7 @@ const middleware: Middleware<{}, RootState>[] = [
   ofacApi.middleware,
   safePassApi.middleware,
   slices.gatewayApi.middleware,
-  swapperApi.middleware,
+  swapperRoleApi.middleware,
 ]
 
 const listeners = [
@@ -106,6 +107,7 @@ const listeners = [
   swapOrderListener,
   swapOrderStatusListener,
   authListener,
+  safeInfoListener,
 ]
 
 export const _hydrationReducer: typeof rootReducer = (state, action) => {

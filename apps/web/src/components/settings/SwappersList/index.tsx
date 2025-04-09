@@ -27,10 +27,10 @@ import useAsync from '@/hooks/useAsync'
 
 export function SwappersList(): ReactElement {
   const { setTxFlow } = useContext(TxModalContext)
-  const { data: rolesModifierAddress } = useGetRolesModifierQuery()
   const roleKey = encodeRoleKey(SWAPPER_ROLE_KEY)
-  const { data: role } = useGetRoleQuery(roleKey)
-  const { data: allowances } = useGetAllowancesQuery(roleKey)
+  const { data: rolesModifierAddress } = useGetRolesModifierQuery()
+  const { data: role } = useGetRoleQuery(roleKey, rolesModifierAddress ?? undefined)
+  const { data: allowances } = useGetAllowancesQuery(roleKey, rolesModifierAddress ?? undefined)
 
   const onAdd = () => {
     setTxFlow(<SetupSwapperRoleFlow />)
