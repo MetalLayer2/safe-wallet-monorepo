@@ -42,14 +42,14 @@ export const allowUnwrappingNativeTokens = (tokenAddress: `0x${string}`): Permis
 })
 
 export const allowCreatingOrders = (
-  safeAddress: `0x${string}`,
   chainId: string,
-  config: Array<{
+  tokenAllowances: Array<{
     token: `0x${string}`
     amount: bigint
     type: 'sell' | 'buy'
     allowanceKey: `0x${string}`
   }>,
+  receivers: Array<`0x${string}`>,
 ): Permission => {
   if (!isSwapperRoleChain(chainId)) {
     throw new Error('Unsupported chain')
@@ -58,7 +58,7 @@ export const allowCreatingOrders = (
   const signOrder = CowOrderSignerInterface.getFunction('signOrder')!
   const orderStruct = `tuple(${signOrder.inputs[0].components!.map((x) => x.type).join(',')})`
 
-  const conditions = config.map((condition) => {
+  const conditions = tokenAllowances.map((condition) => {
     const isSell = condition.type === 'sell'
     const isBuy = condition.type === 'buy'
 
@@ -67,7 +67,7 @@ export const allowCreatingOrders = (
         c.matches([
           isSell ? c.eq(condition.token) : c.pass,
           isBuy ? c.eq(condition.token) : c.pass,
-          c.eq(safeAddress),
+          oneOf(receivers),
           isSell ? c.withinAllowance(condition.allowanceKey) : c.pass,
           isBuy ? c.withinAllowance(condition.allowanceKey) : c.pass,
           c.pass,

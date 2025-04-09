@@ -58,15 +58,29 @@ const SetupSwapperRoleReview = ({
         }
       })
 
-      const transactions = await enableSwapper(safe.address.value as `0x${string}`, safe.chainId, members, [
-        ...sell,
-        ...buy,
-      ])
+      const transactions = await enableSwapper(
+        safe.address.value as `0x${string}`,
+        safe.chainId,
+        members,
+        [...sell, ...buy],
+        data.receivers.map((receiver) => receiver.address as `0x${string}`),
+      )
       return await sdk.createTransaction({ transactions, onlyCalls: true })
     }
 
     createTx().then(setSafeTx).catch(setSafeTxError)
-  }, [sdk, safe.address.value, safe.chainId, setSafeTx, setSafeTxError, data.members, data.sell, data.buy, tokenInfos])
+  }, [
+    sdk,
+    safe.address.value,
+    safe.chainId,
+    setSafeTx,
+    setSafeTxError,
+    data.members,
+    data.sell,
+    data.buy,
+    tokenInfos,
+    data.receivers,
+  ])
 
   return (
     <TxCard>

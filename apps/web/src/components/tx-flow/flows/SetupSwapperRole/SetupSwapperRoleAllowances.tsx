@@ -163,13 +163,13 @@ function SetupSwapperRoleForm({
       </Box>
 
       <Button
-        onClick={() =>
+        onClick={() => {
           fieldArray.append({
             tokenAddress: '',
             periodInSeconds: 0,
             amount: '0',
           })
-        }
+        }}
         variant="text"
         startIcon={<SvgIcon component={AddIcon} inheritViewBox />}
         sx={{

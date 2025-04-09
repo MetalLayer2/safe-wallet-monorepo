@@ -7,6 +7,8 @@ import SetupSwapperRoleReview from './SetupSwapperRoleReview'
 import { ConfirmTxDetails } from '@/components/tx/ConfirmTxDetails'
 import { SetupSwapperRoleAllowances } from './SetupSwapperRoleAllowances'
 import SaveAddressIcon from '@/public/images/common/save-address.svg'
+import useSafeInfo from '@/hooks/useSafeInfo'
+import { SetupSwapperRoleReceivers } from './SetupSwapperRoleReceivers'
 
 export type SwapperRoleAllowanceData = {
   tokenAddress: string
@@ -18,13 +20,16 @@ export type SetupSwapperRoleData = {
   members: Array<{ name: string; address: string }>
   sell: Array<SwapperRoleAllowanceData>
   buy: Array<SwapperRoleAllowanceData>
+  receivers: Array<{ address: string }>
 }
 
 const SetupSwapperRole = (): ReactElement => {
+  const { safeAddress } = useSafeInfo()
   const { data, step, nextStep, prevStep } = useTxStepper<SetupSwapperRoleData>({
     members: [{ name: '', address: '' }],
     sell: [],
     buy: [],
+    receivers: [{ address: safeAddress }],
   })
 
   const steps = useMemo<TxStep[]>(
@@ -42,6 +47,15 @@ const SetupSwapperRole = (): ReactElement => {
         txLayoutProps: { title: 'Swapper set up', subtitle: 'Configure token limits' },
         content: (
           <SetupSwapperRoleAllowances
+            data={data}
+            onSubmit={(formData: SetupSwapperRoleData) => nextStep({ ...data, ...formData })}
+          />
+        ),
+      },
+      {
+        txLayoutProps: { title: 'Receivers' },
+        content: (
+          <SetupSwapperRoleReceivers
             data={data}
             onSubmit={(formData: SetupSwapperRoleData) => nextStep({ ...data, ...formData })}
           />

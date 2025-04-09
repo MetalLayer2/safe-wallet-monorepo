@@ -21,12 +21,13 @@ export async function enableSwapper(
   safeAddress: `0x${string}`,
   chainId: string,
   members: Array<`0x${string}`>,
-  config: Array<{
+  tokenAllowances: Array<{
     token: `0x${string}`
     amount: bigint
     type: 'sell' | 'buy'
     periodInSeconds: number
   }>,
+  receivers: Array<`0x${string}`>,
 ): Promise<Array<MetaTransactionData>> {
   if (!isSwapperRoleChain(chainId)) {
     throw new Error('Unsupported chain')
@@ -52,7 +53,7 @@ export async function enableSwapper(
   const { weth } = SWAPPER_ROLE_CONTRACTS[chainId]
 
   // Allow ERC-20 approve for CowSwap on selected tokens sell tokens
-  const allowanceAddresses = config
+  const allowanceAddresses = tokenAllowances
     .filter((c) => c.type === 'sell')
     .map((config) => {
       if (config.token === ZeroAddress) {
@@ -64,7 +65,7 @@ export async function enableSwapper(
     })
   permissions.push(...allowErc20Approve(allowanceAddresses, [SWAPPER_ROLE_CONTRACTS[chainId].cowSwap.gpv2VaultRelayer]))
 
-  const hasNativeToken = config.some((config) => config.token === ZeroAddress)
+  const hasNativeToken = tokenAllowances.some((config) => config.token === ZeroAddress)
   if (hasNativeToken) {
     // Allow wrapping of WETH
     permissions.push(allowWrappingNativeTokens(weth))
@@ -73,7 +74,7 @@ export async function enableSwapper(
   }
 
   // Format allowances
-  const allowances = config.map<Allowance>((config) => {
+  const allowances = tokenAllowances.map<Allowance>((config) => {
     const token = config.token === ZeroAddress ? weth : config.token
     const allowanceKey = createAllowanceKey(token, config.type)
 
@@ -104,9 +105,8 @@ export async function enableSwapper(
   // Allow creating orders using OrderSigner
   permissions.push(
     allowCreatingOrders(
-      safeAddress,
       chainId,
-      config.map((config) => {
+      tokenAllowances.map((config) => {
         const token = config.token === ZeroAddress ? weth : config.token
         const allowanceKey = createAllowanceKey(token, config.type)
         return {
@@ -116,6 +116,7 @@ export async function enableSwapper(
           allowanceKey,
         }
       }),
+      receivers,
     ),
   )
 
