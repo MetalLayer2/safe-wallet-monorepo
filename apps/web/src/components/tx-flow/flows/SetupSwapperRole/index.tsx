@@ -15,14 +15,14 @@ export type SwapperRoleAllowanceData = {
 }
 
 export type SetupSwapperRoleData = {
-  members: Array<{ address: string }>
+  members: Array<{ name: string; address: string }>
   sell: Array<SwapperRoleAllowanceData>
   buy: Array<SwapperRoleAllowanceData>
 }
 
 const SetupSwapperRole = (): ReactElement => {
   const { data, step, nextStep, prevStep } = useTxStepper<SetupSwapperRoleData>({
-    members: [{ address: '' }],
+    members: [{ name: '', address: '' }],
     sell: [],
     buy: [],
   })
@@ -58,7 +58,13 @@ const SetupSwapperRole = (): ReactElement => {
       },
       {
         txLayoutProps: { title: 'Confirm transaction details', fixedNonce: true },
-        content: <ConfirmTxDetails onSubmit={() => {}} />,
+        content: (
+          <ConfirmTxDetails
+            onSubmit={() => {
+              // TODO: Save name(s) to address book
+            }}
+          />
+        ),
       },
     ],
     [data, nextStep],

@@ -1,11 +1,11 @@
 import { Fragment, type ReactElement } from 'react'
-import { Button, CardActions, Grid2, IconButton, SvgIcon, Typography } from '@mui/material'
+import { Button, CardActions, Grid2, SvgIcon } from '@mui/material'
 import TxCard from '../../common/TxCard'
 import { type SetupSwapperRoleData } from '.'
 import AddressBookInput from '@/components/common/AddressBookInput'
 import { FormProvider, useFieldArray, useForm } from 'react-hook-form'
 import AddIcon from '@/public/images/common/add.svg'
-import DeleteIcon from '@/public/images/common/delete.svg'
+import NameInput from '@/components/common/NameInput'
 
 const SetupSwapperRoleMembers = ({
   data,
@@ -20,7 +20,7 @@ const SetupSwapperRoleMembers = ({
     defaultValues: data,
   })
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append } = useFieldArray({
     control: formData.control,
     name: 'members',
   })
@@ -29,28 +29,21 @@ const SetupSwapperRoleMembers = ({
     <TxCard>
       <FormProvider {...formData}>
         <form onSubmit={formData.handleSubmit(onSubmit)}>
-          <Typography>Configure Swappers that will be allowed to swap without signatures.</Typography>
-
-          <Grid2 container spacing={3} sx={{ my: 2 }}>
+          <Grid2 container spacing={3}>
             {fields.map((field, index) => (
               <Fragment key={field.id}>
-                <Grid2 size={{ xs: 11 }}>
-                  <AddressBookInput name={`members.${index}.address`} label={`Swapper Address ${index + 1}`} />
+                <Grid2 size={{ xs: 12 }}>
+                  <NameInput name={`members.${index}.name`} label="Swapper name" />
                 </Grid2>
-
-                <Grid2 size={{ xs: 1 }} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                  {index > 0 && (
-                    <IconButton onClick={() => remove(index)}>
-                      <SvgIcon component={DeleteIcon} inheritViewBox />
-                    </IconButton>
-                  )}
+                <Grid2 size={{ xs: 12 }} mb={2}>
+                  <AddressBookInput name={`members.${index}.address`} label="Swapper address or ENS" canAdd />
                 </Grid2>
               </Fragment>
             ))}
           </Grid2>
 
           <Button
-            onClick={() => append({ address: '' })}
+            onClick={() => append({ name: '', address: '' })}
             variant="text"
             startIcon={<SvgIcon component={AddIcon} inheritViewBox />}
           >

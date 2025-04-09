@@ -1,16 +1,45 @@
-import { Typography, CardActions, Button, Select, MenuItem, Grid2, IconButton, SvgIcon } from '@mui/material'
+import {
+  Typography,
+  CardActions,
+  Button,
+  Select,
+  MenuItem,
+  Grid2,
+  IconButton,
+  SvgIcon,
+  Box,
+  Divider,
+} from '@mui/material'
 import { Fragment } from 'react'
 import { useForm, useFieldArray, FormProvider, Controller, useFormContext } from 'react-hook-form'
 import type { ReactElement } from 'react'
 import type { UseFieldArrayReturn } from 'react-hook-form'
 
+import { useVisibleBalances } from '@/hooks/useVisibleBalances'
+import TokenAmountInput from '@/components/common/TokenAmountInput'
 import AddIcon from '@/public/images/common/add.svg'
 import DeleteIcon from '@/public/images/common/delete.svg'
 import TxCard from '../../common/TxCard'
 import type { SetupSwapperRoleData } from '.'
-import { useVisibleBalances } from '@/hooks/useVisibleBalances'
-import TokenAmountInput from '@/components/common/TokenAmountInput'
-import { type SafeBalanceResponse } from '@safe-global/safe-gateway-typescript-sdk'
+
+export const SwapperRolePeriodsInSeconds = [
+  {
+    value: 0,
+    label: 'No limit',
+  },
+  {
+    value: 60 * 60 * 24,
+    label: 'Daily',
+  },
+  {
+    value: 60 * 60 * 24 * 7,
+    label: 'Weekly',
+  },
+  {
+    value: 60 * 60 * 24 * 30,
+    label: 'Monthly',
+  },
+]
 
 export function SetupSwapperRoleAllowances({
   data,
@@ -35,19 +64,15 @@ export function SetupSwapperRoleAllowances({
     name: 'buy',
   })
 
-  const { balances: visibleBalances } = useVisibleBalances()
-
   return (
     <TxCard>
       <FormProvider {...formData}>
         <form onSubmit={formData.handleSubmit(onSubmit)}>
-          <Typography fontWeight={700}>Sell limits</Typography>
-          <Typography mb={2}>Set the amount a Swapper can sell.</Typography>
-          <SetupSwapperRoleAllowancesByType type="sell" fieldArray={sellFieldArray} balances={visibleBalances} />
+          <SetupSwapperRoleForm type="sell" fieldArray={sellFieldArray} />
 
-          <Typography fontWeight={700}>Buy limits</Typography>
-          <Typography mb={2}>Set the amount a Swapper can buy.</Typography>
-          <SetupSwapperRoleAllowancesByType type="buy" fieldArray={buyFieldArray} balances={visibleBalances} />
+          <Divider flexItem sx={{ my: 3 }} />
+
+          <SetupSwapperRoleForm type="buy" fieldArray={buyFieldArray} />
 
           <CardActions>
             <Button type="submit" variant="contained">
@@ -60,75 +85,82 @@ export function SetupSwapperRoleAllowances({
   )
 }
 
-export const SwapperRolePeriodsInSeconds = [
-  {
-    value: 0,
-    label: 'No limit',
-  },
-  {
-    value: 60 * 60 * 24,
-    label: 'Daily',
-  },
-  {
-    value: 60 * 60 * 24 * 7,
-    label: 'Weekly',
-  },
-  {
-    value: 60 * 60 * 24 * 30,
-    label: 'Monthly',
-  },
-]
-
-function SetupSwapperRoleAllowancesByType({
+function SetupSwapperRoleForm({
   type,
   fieldArray,
-  balances,
 }: {
   type: 'sell' | 'buy'
   fieldArray: UseFieldArrayReturn<SetupSwapperRoleData, 'sell' | 'buy', 'id'>
-  balances: SafeBalanceResponse
-}) {
+}): ReactElement {
+  const { balances } = useVisibleBalances()
   const formData = useFormContext()
 
   return (
     <>
-      <Grid2 container spacing={3}>
-        {fieldArray.fields.map((field, index) => (
-          <Fragment key={field.id}>
-            <Grid2 size={{ xs: 8 }}>
-              <TokenAmountInput
-                fieldArray={{ name: type, index }}
-                balances={balances.items}
-                selectedToken={balances.items.find((b) => b.tokenInfo.address === field.tokenAddress)}
-              />
-            </Grid2>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          mb: 2,
+        }}
+      >
+        <Box
+          sx={{
+            width: '32px',
+            height: '32px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '6px',
+            backgroundColor: type === 'sell' ? 'success.background' : 'error.background',
+            mr: 2,
+          }}
+        />
+        <Typography fontWeight={700}>{type === 'sell' ? 'Sell limits' : 'Buy limits'}</Typography>
+      </Box>
 
-            <Grid2 size={{ xs: 3 }}>
-              <Controller
-                name={`${type}.${index}.periodInSeconds`}
-                control={formData.control}
-                render={({ field }) => (
-                  <Select fullWidth {...field}>
-                    {SwapperRolePeriodsInSeconds.map(({ value, label }) => (
-                      <MenuItem key={label} value={value}>
-                        {label}
-                      </MenuItem>
-                    ))}
-                  </Select>
+      <Box ml={6}>
+        <Typography my={2}>Set the amount a Swapper can {type === 'sell' ? 'sell' : 'buy'}.</Typography>
+
+        <Grid2 container spacing={3}>
+          {fieldArray.fields.map((field, index) => (
+            <Fragment key={field.id}>
+              <Grid2 size={{ xs: 8 }}>
+                <TokenAmountInput
+                  fieldArray={{ name: type, index }}
+                  balances={balances.items}
+                  selectedToken={balances.items.find((b) => b.tokenInfo.address === field.tokenAddress)}
+                />
+              </Grid2>
+
+              <Grid2 size={{ xs: 3 }}>
+                <Controller
+                  name={`${type}.${index}.periodInSeconds`}
+                  control={formData.control}
+                  render={({ field }) => (
+                    <Select fullWidth {...field}>
+                      {SwapperRolePeriodsInSeconds.map(({ value, label }) => (
+                        <MenuItem key={label} value={value}>
+                          {label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+              </Grid2>
+
+              <Grid2 size={{ xs: 1 }} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                {index > 0 && (
+                  <IconButton onClick={() => fieldArray.remove(index)}>
+                    <SvgIcon component={DeleteIcon} inheritViewBox />
+                  </IconButton>
                 )}
-              />
-            </Grid2>
-
-            <Grid2 size={{ xs: 1 }} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              {index > 0 && (
-                <IconButton onClick={() => fieldArray.remove(index)}>
-                  <SvgIcon component={DeleteIcon} inheritViewBox />
-                </IconButton>
-              )}
-            </Grid2>
-          </Fragment>
-        ))}
-      </Grid2>
+              </Grid2>
+            </Fragment>
+          ))}
+        </Grid2>
+      </Box>
 
       <Button
         onClick={() =>
@@ -140,6 +172,14 @@ function SetupSwapperRoleAllowancesByType({
         }
         variant="text"
         startIcon={<SvgIcon component={AddIcon} inheritViewBox />}
+        sx={{
+          mt: 3,
+          ml: 4,
+          ':hover': {
+            backgroundColor: 'transparent',
+          },
+        }}
+        disableRipple
       >
         Add token limit
       </Button>
