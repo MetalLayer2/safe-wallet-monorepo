@@ -9,8 +9,6 @@ import type { SafeInfo } from '@safe-global/safe-gateway-typescript-sdk'
 import useSafeInfo from '@/hooks/useSafeInfo'
 import { useWeb3ReadOnly } from '@/hooks/wallets/web3'
 import { sameAddress } from '@safe-global/utils/utils/addresses'
-import type { Balances } from '@safe-global/store/gateway/AUTO_GENERATED/balances'
-import useBalances from '@/hooks/useBalances'
 import { CowOrderSignerAbi } from '@/features/swapper-role/abis/cow-order-signer'
 import { RolesModifierAbi } from '@/features/swapper-role/abis/roles-modifier'
 
@@ -30,25 +28,24 @@ export const swapperRoleApi = createApi({
   baseQuery: noopBaseQuery,
   tagTypes: ['SwapperRole'],
   endpoints: (builder) => ({
-    getRolesModifier: builder.query<string | null, { provider: JsonRpcProvider; safe: SafeInfo }>({
+    getRolesModifier: builder.query<
+      string | null,
+      { chainId: string; provider: JsonRpcProvider; modules: SafeInfo['modules'] }
+    >({
       async queryFn(args) {
-        const modules = args.safe.modules
-
-        if (!modules || modules.length === 0) {
+        if (!args.modules || args.modules.length === 0) {
           return {
             data: null,
           }
         }
 
-        const chainId = args.safe.chainId
-
-        if (!isSwapperRoleChain(chainId)) {
+        if (!isSwapperRoleChain(args.chainId)) {
           return createBadRequestError('Unsupported chain')
         }
 
-        const expectedByteCode = `0x363d3d373d3d3d363d73${SWAPPER_ROLE_CONTRACTS[chainId].roles.slice(2).toLowerCase()}5af43d82803e903d91602b57fd5bf3`
+        const expectedByteCode = `0x363d3d373d3d3d363d73${SWAPPER_ROLE_CONTRACTS[args.chainId].roles.slice(2).toLowerCase()}5af43d82803e903d91602b57fd5bf3`
 
-        for (const { value } of modules) {
+        for (const { value } of args.modules) {
           const code = await args.provider.getCode(value, 'latest')
 
           if (code === expectedByteCode) {
@@ -66,10 +63,10 @@ export const swapperRoleApi = createApi({
     }),
     getRole: builder.query<
       Role | null,
-      { safe: SafeInfo; provider: JsonRpcProvider; roleKey: string; rolesModifierAddress: string }
+      { chainId: SafeInfo['chainId']; provider: JsonRpcProvider; roleKey: string; rolesModifierAddress: string }
     >({
       async queryFn(args) {
-        const chainId = Number(args.safe.chainId)
+        const chainId = Number(args.chainId)
 
         // TODO: Improve type handling
         if (!isHexString(args.rolesModifierAddress) || !isHexString(args.roleKey) || chainId !== 11155111) {
@@ -100,10 +97,15 @@ export const swapperRoleApi = createApi({
           isUnset: boolean
         }
       }> | null,
-      { safe: SafeInfo; balances: Balances; provider: JsonRpcProvider; roleKey: string; rolesModifierAddress: string }
+      {
+        chainId: SafeInfo['chainId']
+        provider: JsonRpcProvider
+        roleKey: string
+        rolesModifierAddress: string
+      }
     >({
       async queryFn(args) {
-        const chainId = Number(args.safe.chainId)
+        const chainId = Number(args.chainId)
 
         // TODO: Improve type handling
         if (!isHexString(args.rolesModifierAddress) || !isHexString(args.roleKey) || chainId !== 11155111) {
@@ -121,10 +123,10 @@ export const swapperRoleApi = createApi({
         }
 
         const orderSignerTarget = role.targets.find((target) => {
-          if (!isSwapperRoleChain(args.safe.chainId)) {
+          if (!isSwapperRoleChain(args.chainId)) {
             return false
           }
-          return sameAddress(target.address, SWAPPER_ROLE_CONTRACTS[args.safe.chainId].cowSwap.orderSigner)
+          return sameAddress(target.address, SWAPPER_ROLE_CONTRACTS[args.chainId].cowSwap.orderSigner)
         })
 
         if (!orderSignerTarget) {
@@ -263,7 +265,9 @@ export function useGetRolesModifierQuery() {
   const { safeLoaded, safe } = useSafeInfo()
   const web3ReadOnly = useWeb3ReadOnly()
 
-  return _useGetRolesModifierQuery(safeLoaded && web3ReadOnly ? { provider: web3ReadOnly, safe } : skipToken)
+  return _useGetRolesModifierQuery(
+    safeLoaded && web3ReadOnly ? { provider: web3ReadOnly, chainId: safe.chainId, modules: safe.modules } : skipToken,
+  )
 }
 
 export function useGetRoleQuery(roleKey: string, rolesModifierAddress?: string) {
@@ -272,7 +276,7 @@ export function useGetRoleQuery(roleKey: string, rolesModifierAddress?: string) 
 
   return _useGetRoleQuery(
     safeLoaded && web3ReadOnly && rolesModifierAddress
-      ? { provider: web3ReadOnly, safe, roleKey, rolesModifierAddress }
+      ? { provider: web3ReadOnly, chainId: safe.chainId, roleKey, rolesModifierAddress }
       : skipToken,
   )
 }
@@ -280,11 +284,10 @@ export function useGetRoleQuery(roleKey: string, rolesModifierAddress?: string) 
 export function useGetAllowancesQuery(roleKey: string, rolesModifierAddress?: string) {
   const { safeLoaded, safe } = useSafeInfo()
   const web3ReadOnly = useWeb3ReadOnly()
-  const { balances } = useBalances()
 
   return _useGetAllowancesQuery(
-    safeLoaded && web3ReadOnly && rolesModifierAddress && balances
-      ? { provider: web3ReadOnly, safe, balances, roleKey, rolesModifierAddress }
+    safeLoaded && web3ReadOnly && rolesModifierAddress
+      ? { provider: web3ReadOnly, chainId: safe.chainId, roleKey, rolesModifierAddress }
       : skipToken,
   )
 }
