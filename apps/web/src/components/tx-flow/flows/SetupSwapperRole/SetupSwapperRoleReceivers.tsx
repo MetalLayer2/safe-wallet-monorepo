@@ -50,33 +50,34 @@ export function SetupSwapperRoleReceivers({
             label="Allow to settle swaps outside of this Safe Account"
           />
           <Grid2 container spacing={3}>
-            {fields.map((field, _index) => {
-              const index = _index + 1
+            {fields.map((field, index) => {
               return (
                 <Fragment key={field.id}>
                   <Grid2 size={{ xs: 11 }}>
-                    <AddressBookInput name={`receivers.${index}.address`} label="Receiver address or ENS" canAdd />
+                    <AddressBookInput name={`receivers.${index + 1}.address`} label="Receiver address or ENS" canAdd />
                   </Grid2>
                   <Grid2 size={{ xs: 1 }} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <IconButton onClick={() => fieldArray.remove(index)}>
+                    <IconButton onClick={() => fieldArray.remove(index + 1)}>
                       <SvgIcon component={DeleteIcon} inheritViewBox />
                     </IconButton>
                   </Grid2>
+                  {index === fields.length - 1 && (
+                    <Button
+                      onClick={() => {
+                        fieldArray.append({
+                          address: '',
+                        })
+                      }}
+                      variant="text"
+                      startIcon={<SvgIcon component={AddIcon} inheritViewBox />}
+                    >
+                      Add receiver
+                    </Button>
+                  )}
                 </Fragment>
               )
             })}
           </Grid2>
-          <Button
-            onClick={() => {
-              fieldArray.append({
-                address: '',
-              })
-            }}
-            variant="text"
-            startIcon={<SvgIcon component={AddIcon} inheritViewBox />}
-          >
-            Add receiver
-          </Button>
           <CardActions>
             <Button type="submit" variant="contained">
               Continue

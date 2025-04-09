@@ -103,6 +103,13 @@ function MemberList({ role }: { role: Role }): ReactElement | null {
   return <EnhancedTable rows={rows} headCells={[]} />
 }
 
+const headCells = [
+  { id: 'type', label: 'Type' },
+  { id: 'receivers', label: 'Receiver' },
+  { id: 'allowance', label: 'Allowance' },
+  { id: 'actions', label: '' },
+]
+
 function AllowanceList({
   allowances,
   rolesModifierAddress,
@@ -110,6 +117,7 @@ function AllowanceList({
   allowances: Array<{
     token: string
     type: 'sell' | 'buy'
+    receivers: Array<string>
     allowanceKey: string
     allowance: {
       refill: string
@@ -129,16 +137,18 @@ function AllowanceList({
       return []
     }
 
-    return allowances.map(({ token, type, allowanceKey, allowance }) => {
+    return allowances.map(({ token, type, receivers, allowanceKey, allowance }) => {
       return {
         cells: {
           type: {
             rawValue: type,
             content: type,
           },
-          token: {
-            rawValue: token,
-            content: <EthHashInfo address={token} showCopyButton hasExplorer shortAddress={false} />,
+          receivers: {
+            rawValue: receivers.join(', '),
+            content: receivers.map((receiver) => (
+              <EthHashInfo key={receiver} address={receiver} showCopyButton hasExplorer shortAddress={false} />
+            )),
           },
           value: {
             rawValue: allowanceKey,
@@ -207,7 +217,7 @@ function AllowanceList({
     return null
   }
 
-  return <EnhancedTable rows={rows} headCells={[]} />
+  return <EnhancedTable rows={rows} headCells={headCells} />
 }
 
 function AllowanceBalanceItem({ balance, token }: { balance: string; token: string }): ReactElement {

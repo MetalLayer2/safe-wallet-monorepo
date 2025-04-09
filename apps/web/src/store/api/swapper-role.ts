@@ -87,6 +87,7 @@ export const swapperRoleApi = createApi({
       Array<{
         token: string
         type: 'sell' | 'buy'
+        receivers: Array<string>
         allowanceKey: string
         allowance: {
           refill: string
@@ -147,7 +148,7 @@ export const swapperRoleApi = createApi({
             return (
               'children' in grandChild &&
               grandChild.children?.some((greatGrandChild) => {
-                return greatGrandChild.operator === Operator.WithinAllowance
+                return greatGrandChild.operator !== Operator.Pass
               })
             )
           })
@@ -166,30 +167,42 @@ export const swapperRoleApi = createApi({
 
             let sellToken: string | undefined
             let buyToken: string | undefined
-            let receiver: string | undefined
+            let receivers: Array<string> | undefined
             let sellAmountAllowanceKey: string | undefined
             let buyAmountAllowanceKey: string | undefined
 
-            // TODO: Also check ParamType
             if (_sellToken.operator === Operator.EqualTo && _sellToken.compValue) {
               sellToken = decodeAddress(_sellToken.compValue)
             }
+
             if (_buyToken.operator === Operator.EqualTo && _buyToken.compValue) {
               buyToken = decodeAddress(_buyToken.compValue)
             }
-            if (_receiver.operator === Operator.EqualTo && _receiver.compValue) {
-              receiver = decodeAddress(_receiver.compValue)
+
+            if (_receiver.operator === Operator.Or) {
+              receivers = _receiver.children
+                ?.map((child) => {
+                  if (child.operator === Operator.EqualTo && child.compValue) {
+                    return decodeAddress(child.compValue)
+                  }
+                })
+                .filter((child) => child != null)
+            } else if (_receiver.operator === Operator.EqualTo && _receiver.compValue) {
+              receivers = [decodeAddress(_receiver.compValue)]
             }
+
             if (_sellAmount.operator === Operator.WithinAllowance && _sellAmount.compValue) {
               sellAmountAllowanceKey = decodeAllowanceKey(_sellAmount.compValue)
             }
+
             if (_buyAmount.operator === Operator.WithinAllowance && _buyAmount.compValue) {
               buyAmountAllowanceKey = decodeAllowanceKey(_buyAmount.compValue)
             }
+
             return {
               sellToken,
               buyToken,
-              receiver,
+              receivers,
               sellAmountAllowanceKey,
               buyAmountAllowanceKey,
             }
@@ -204,7 +217,7 @@ export const swapperRoleApi = createApi({
             const token = a.sellToken ?? a.buyToken
             const allowanceKey = a.sellAmountAllowanceKey ?? a.buyAmountAllowanceKey
 
-            if (!token || !allowanceKey) {
+            if (!token || !allowanceKey || !a.receivers) {
               return null
             }
 
@@ -225,6 +238,7 @@ export const swapperRoleApi = createApi({
             return {
               token,
               type: a.sellAmountAllowanceKey ? ('sell' as const) : ('buy' as const),
+              receivers: a.receivers,
               allowanceKey,
               allowance: {
                 refill: allowance.refill.toString(),

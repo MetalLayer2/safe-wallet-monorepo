@@ -10,13 +10,12 @@ const CowOrderSignerInterface = new Interface(CowOrderSignerAbi)
 const Erc20Interface = ERC20__factory.createInterface()
 const WrappedNativeTokenInterface = new Interface(['function deposit()', 'function withdraw(uint)'])
 
-// TODO: Revert from using this and use `c.or` to simplify allowance retrieval
 const oneOf = <T extends unknown>(values: readonly T[]) => {
   if (values.length === 0) {
     throw new Error('`oneOf` values must not be empty')
   }
 
-  return values.length === 1 ? values[0] : c.or(...(values as [T, T, ...T[]]))
+  return values.length === 1 ? c.eq(values[0]) : c.or(...(values as [T, T, ...T[]]))
 }
 
 export const allowErc20Approve = (tokens: readonly `0x${string}`[], spenders: readonly `0x${string}`[]) =>
