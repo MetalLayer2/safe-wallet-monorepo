@@ -8,8 +8,9 @@ import { ConfirmTxDetails } from '@/components/tx/ConfirmTxDetails'
 import ReviewTransaction from '@/components/tx/ReviewTransaction'
 import { createTx } from '@/services/tx/tx-sender'
 import { SafeTxContext } from '@/components/tx-flow/SafeTxProvider'
+import { RolesModifierAbi } from '@/features/swapper-role/abis/roles-modifier'
 
-const RolesInterface = new Interface(['function setAllowance(bytes32,uint128,uint128,uint128,uint64,uint64)'])
+const RolesModifierInterface = new Interface(RolesModifierAbi)
 
 export function RemoveAllowance({
   rolesModifierAddress,
@@ -57,7 +58,7 @@ function ReviewRemoveAllowance({
   const { setSafeTx, setSafeTxError } = useContext(SafeTxContext)
 
   useEffect(() => {
-    const data = RolesInterface.encodeFunctionData('setAllowance', [allowanceKey, 0, 0, 0, 0, 0])
+    const data = RolesModifierInterface.encodeFunctionData('setAllowance', [allowanceKey, 0, 0, 0, 0, 0])
 
     createTx({
       to: rolesModifierAddress,

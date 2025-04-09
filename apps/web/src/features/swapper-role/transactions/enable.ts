@@ -4,7 +4,6 @@ import { setUpRolesMod, setUpRoles, applyAllowances } from 'zodiac-roles-sdk'
 import type { MetaTransactionData } from '@safe-global/safe-core-sdk-types'
 import type { Allowance, Permission } from 'zodiac-roles-sdk'
 
-import { isSwapperRoleChain, SwapperRoleContracts } from './constants'
 import {
   allowErc20Approve,
   allowWrappingNativeTokens,
@@ -12,10 +11,11 @@ import {
   allowUnwrappingNativeTokens,
 } from './permissions'
 import { createAllowanceKey } from './allowances'
-
-export const SWAPPER_ROLE_KEY = 'SafeSwapperRole'
+import { isSwapperRoleChain, SWAPPER_ROLE_CONTRACTS, SWAPPER_ROLE_KEY } from '../constants'
 
 const SafeInterface = Safe__factory.createInterface()
+
+const enableModuleSelector = SafeInterface.getFunction('enableModule')!.selector
 
 export async function enableSwapper(
   safeAddress: `0x${string}`,
@@ -37,9 +37,8 @@ export async function enableSwapper(
     saltNonce: id(SWAPPER_ROLE_KEY + Date.now()) as `0x${string}`,
   })
 
-  const enableModuleFragment = SafeInterface.getFunction('enableModule')!
   const enableModule = transactions.find((transaction) => {
-    return transaction.data.startsWith(enableModuleFragment.selector)
+    return transaction.data.startsWith(enableModuleSelector)
   })
 
   if (!enableModule) {
@@ -50,7 +49,7 @@ export async function enableSwapper(
 
   const permissions: Array<Permission> = []
 
-  const { weth } = SwapperRoleContracts[chainId]
+  const { weth } = SWAPPER_ROLE_CONTRACTS[chainId]
 
   // Allow ERC-20 approve for CowSwap on selected tokens sell tokens
   const allowanceAddresses = config
@@ -63,7 +62,7 @@ export async function enableSwapper(
         return config.token
       }
     })
-  permissions.push(...allowErc20Approve(allowanceAddresses, [SwapperRoleContracts[chainId].cowSwap.gpv2VaultRelayer]))
+  permissions.push(...allowErc20Approve(allowanceAddresses, [SWAPPER_ROLE_CONTRACTS[chainId].cowSwap.gpv2VaultRelayer]))
 
   const hasNativeToken = config.some((config) => config.token === ZeroAddress)
   if (hasNativeToken) {
@@ -84,7 +83,7 @@ export async function enableSwapper(
       refill: config.amount,
       maxRefill: config.amount,
       period: BigInt(config.periodInSeconds),
-      timestamp: BigInt(0), // TODO: Check if this is correct
+      timestamp: BigInt(0),
     }
   })
 

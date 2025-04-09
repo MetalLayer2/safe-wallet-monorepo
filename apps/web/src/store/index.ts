@@ -31,7 +31,7 @@ import { version as termsVersion } from '@/markdown/terms/version'
 import { cgwClient, setBaseUrl } from '@safe-global/store/gateway/cgwClient'
 import { GATEWAY_URL } from '@/config/gateway'
 import { setupListeners } from '@reduxjs/toolkit/query'
-import { swapperApi } from './api/swapper'
+import { swapperApi } from './api/swapper-role'
 
 const rootReducer = combineReducers({
   [slices.chainsSlice.name]: slices.chainsSlice.reducer,

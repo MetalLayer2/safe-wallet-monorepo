@@ -3,12 +3,14 @@ import { Interface } from 'ethers'
 import { c, forAll } from 'zodiac-roles-sdk'
 import type { Permission } from 'zodiac-roles-sdk'
 
-import { CowOrderSignerAbi, isSwapperRoleChain, SwapperRoleContracts } from './constants'
+import { CowOrderSignerAbi } from '@/features/swapper-role/abis/cow-order-signer'
+import { isSwapperRoleChain, SWAPPER_ROLE_CONTRACTS } from '../constants'
 
 const CowOrderSignerInterface = new Interface(CowOrderSignerAbi)
 const Erc20Interface = ERC20__factory.createInterface()
 const WrappedNativeTokenInterface = new Interface(['function deposit()', 'function withdraw(uint)'])
 
+// TODO: Revert from using this and use `c.or` to simplify allowance retrieval
 const oneOf = <T extends unknown>(values: readonly T[]) => {
   if (values.length === 0) {
     throw new Error('`oneOf` values must not be empty')
@@ -25,7 +27,6 @@ export const allowErc20Approve = (tokens: readonly `0x${string}`[], spenders: re
     condition: c.calldataMatches([oneOf(spenders)], ['address', 'uint256']),
   })
 
-// TODO: Add c.etherWithinAllowance to this?
 export const allowWrappingNativeTokens = (tokenAddress: `0x${string}`): Permission => ({
   targetAddress: tokenAddress,
   send: true,
@@ -83,7 +84,7 @@ export const allowCreatingOrders = (
   })
 
   return {
-    targetAddress: SwapperRoleContracts[chainId].cowSwap.orderSigner,
+    targetAddress: SWAPPER_ROLE_CONTRACTS[chainId].cowSwap.orderSigner,
     send: false,
     delegatecall: true, // Delegate call is required for signing orders
     selector: signOrder.selector as `0x${string}`,

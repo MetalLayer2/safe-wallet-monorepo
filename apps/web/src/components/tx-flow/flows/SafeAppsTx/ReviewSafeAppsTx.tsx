@@ -11,9 +11,9 @@ import ReviewTransaction from '@/components/tx/ReviewTransaction'
 import { PRE_SIGN_SIGHASH } from '@/features/swap'
 import useWallet from '@/hooks/wallets/useWallet'
 import { Button } from '@mui/material'
-import { signAsSwapper } from '../SetupSwapperRole/transactions/sign'
+import { signAsSwapper } from '@/features/swapper-role/transactions/sign'
 import useSafeInfo from '@/hooks/useSafeInfo'
-import { useGetRolesModifierQuery } from '@/store/api/swapper'
+import { useGetRolesModifierQuery } from '@/store/api/swapper-role'
 
 type ReviewSafeAppsTxProps = {
   safeAppsTx: SafeAppsTxParams

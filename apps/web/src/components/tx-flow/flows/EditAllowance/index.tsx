@@ -13,26 +13,27 @@ import { SafeTxContext } from '@/components/tx-flow/SafeTxProvider'
 import TxCard from '../../common/TxCard'
 import type { SwapperRoleAllowanceData } from '../SetupSwapperRole'
 import { SwapperRolePeriodsInSeconds } from '../SetupSwapperRole/SetupSwapperRoleAllowances'
+import { RolesModifierAbi } from '@/features/swapper-role/abis/roles-modifier'
 
-const RolesInterface = new Interface(['function setAllowance(bytes32,uint128,uint128,uint128,uint64,uint64)'])
+const RolesModifierInterface = new Interface(RolesModifierAbi)
 
 export function EditAllowance({
   rolesModifierAddress,
   allowanceKey,
-  token,
+  tokenAddress,
   type,
   amount,
   periodInSeconds,
 }: {
   rolesModifierAddress: string
   allowanceKey: string
-  token: string
+  tokenAddress: string
   type: 'sell' | 'buy'
   amount: string
   periodInSeconds: number
 }): ReactElement {
   const { data, step, nextStep, prevStep } = useTxStepper({
-    token,
+    tokenAddress,
     amount,
     periodInSeconds,
   })
@@ -83,7 +84,7 @@ function EditAllowanceOverview({
     <TxCard>
       <FormProvider {...formData}>
         <form onSubmit={formData.handleSubmit(onSubmit)}>
-          Change {type} limit for {data.token}
+          Change {type} limit for {data.tokenAddress}
           <Grid2 container spacing={3}>
             <Grid2 size={{ xs: 6 }}>
               <TextField fullWidth label="Amount" type="number" {...formData.register('amount')} />
@@ -134,7 +135,7 @@ function ReviewEditAllowance({
     createTx({
       to: rolesModifierAddress,
       value: '0',
-      data: RolesInterface.encodeFunctionData('setAllowance', [
+      data: RolesModifierInterface.encodeFunctionData('setAllowance', [
         allowanceKey,
         amount,
         amount,

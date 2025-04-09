@@ -12,7 +12,7 @@ import EnhancedTable from '@/components/common/EnhancedTable'
 import EthHashInfo from '@/components/common/EthHashInfo'
 import { TxModalContext } from '@/components/tx-flow'
 import { SetupSwapperRoleFlow } from '@/components/tx-flow/flows'
-import { SWAPPER_ROLE_KEY } from '@/components/tx-flow/flows/SetupSwapperRole/transactions/constants'
+import { SWAPPER_ROLE_KEY } from '@/features/swapper-role/constants'
 import { useWeb3 } from '@/hooks/wallets/web3'
 import AddIcon from '@/public/images/common/add.svg'
 import useBalances from '@/hooks/useBalances'
@@ -22,7 +22,7 @@ import EditIcon from '@/public/images/common/edit.svg'
 import CheckWallet from '@/components/common/CheckWallet'
 import { RemoveAllowance } from '@/components/tx-flow/flows/RemoveAllowance'
 import { EditAllowance } from '@/components/tx-flow/flows/EditAllowance'
-import { useGetAllowancesQuery, useGetRoleQuery, useGetRolesModifierQuery } from '@/store/api/swapper'
+import { useGetAllowancesQuery, useGetRoleQuery, useGetRolesModifierQuery } from '@/store/api/swapper-role'
 import useAsync from '@/hooks/useAsync'
 
 export function SwappersList(): ReactElement {
@@ -158,7 +158,7 @@ function AllowanceList({
                             setTxFlow(
                               <EditAllowance
                                 rolesModifierAddress={rolesModifierAddress}
-                                token={token}
+                                tokenAddress={token}
                                 allowanceKey={allowanceKey}
                                 type={type}
                                 amount={allowance.refill}

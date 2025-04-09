@@ -4,34 +4,18 @@ import { fetchRole, Operator } from 'zodiac-roles-sdk'
 import type { Role } from 'zodiac-roles-sdk'
 import type { JsonRpcProvider } from 'ethers'
 
-import {
-  CowOrderSignerAbi,
-  isSwapperRoleChain,
-  SwapperRoleContracts,
-} from '@/components/tx-flow/flows/SetupSwapperRole/transactions/constants'
+import { isSwapperRoleChain, SWAPPER_ROLE_CONTRACTS } from '@/features/swapper-role/constants'
 import type { SafeInfo } from '@safe-global/safe-gateway-typescript-sdk'
 import useSafeInfo from '@/hooks/useSafeInfo'
 import { useWeb3ReadOnly } from '@/hooks/wallets/web3'
 import { sameAddress } from '@safe-global/utils/utils/addresses'
 import type { Balances } from '@safe-global/store/gateway/AUTO_GENERATED/balances'
 import useBalances from '@/hooks/useBalances'
+import { CowOrderSignerAbi } from '@/features/swapper-role/abis/cow-order-signer'
+import { RolesModifierAbi } from '@/features/swapper-role/abis/roles-modifier'
 
 const CowOrderSignerInterface = new Interface(CowOrderSignerAbi)
-const RolesModifierInterface = new Interface([
-  {
-    inputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
-    name: 'allowances',
-    outputs: [
-      { internalType: 'uint128', name: 'refill', type: 'uint128' },
-      { internalType: 'uint128', name: 'maxRefill', type: 'uint128' },
-      { internalType: 'uint64', name: 'period', type: 'uint64' },
-      { internalType: 'uint128', name: 'balance', type: 'uint128' },
-      { internalType: 'uint64', name: 'timestamp', type: 'uint64' },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-])
+const RolesModifierInterface = new Interface(RolesModifierAbi)
 
 const signOrderSelector = CowOrderSignerInterface.getFunction('signOrder')!.selector
 
@@ -63,7 +47,7 @@ export const swapperApi = createApi({
           return createBadRequestError('Unsupported chain')
         }
 
-        const expectedByteCode = `0x363d3d373d3d3d363d73${SwapperRoleContracts[chainId].roles.slice(2).toLowerCase()}5af43d82803e903d91602b57fd5bf3`
+        const expectedByteCode = `0x363d3d373d3d3d363d73${SWAPPER_ROLE_CONTRACTS[chainId].roles.slice(2).toLowerCase()}5af43d82803e903d91602b57fd5bf3`
 
         for (const { value } of modules) {
           const code = await args.provider.getCode(value, 'latest')
@@ -143,7 +127,7 @@ export const swapperApi = createApi({
           if (!isSwapperRoleChain(args.safe.chainId)) {
             return false
           }
-          return sameAddress(target.address, SwapperRoleContracts[args.safe.chainId].cowSwap.orderSigner)
+          return sameAddress(target.address, SWAPPER_ROLE_CONTRACTS[args.safe.chainId].cowSwap.orderSigner)
         })
 
         if (!orderSignerTarget) {
