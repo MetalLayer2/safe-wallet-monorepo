@@ -57,7 +57,7 @@
     "@safe-global/safe-deployments": "^1.37.31",
     "@safe-global/safe-gateway-typescript-sdk": "3.22.9",
     "@safe-global/safe-modules-deployments": "^2.2.7",
-    "@safe-global/store": "*",
+    "@safe-global/store": "workspace:^",
     "@sentry/react": "^7.91.0",
     "@spindl-xyz/attribution-lite": "^1.8.1",
     "@walletconnect/core": "^2.19.1",
