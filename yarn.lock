@@ -7444,9 +7444,9 @@ __metadata:
     "@reduxjs/toolkit": "npm:^2.4.0"
     "@rtk-query/codegen-openapi": "npm:^2.0.0"
     "@safe-global/protocol-kit": "npm:^5.2.1"
-    "@safe-global/store": "npm:*"
-    "@safe-global/test": "npm:*"
-    "@safe-global/utils": "npm:*"
+    "@safe-global/store": "workspace:^"
+    "@safe-global/test": "workspace:^"
+    "@safe-global/utils": "workspace:^"
     "@shopify/flash-list": "npm:1.7.3"
     "@storybook/addon-essentials": "npm:^8.4.6"
     "@storybook/addon-interactions": "npm:^8.4.6"
@@ -7677,7 +7677,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@safe-global/store@npm:*, @safe-global/store@workspace:packages/store":
+"@safe-global/store@npm:*, @safe-global/store@workspace:^, @safe-global/store@workspace:packages/store":
   version: 0.0.0-use.local
   resolution: "@safe-global/store@workspace:packages/store"
   dependencies:
@@ -7687,11 +7687,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@safe-global/test@npm:*, @safe-global/test@workspace:config/test":
+"@safe-global/test@workspace:^, @safe-global/test@workspace:config/test":
   version: 0.0.0-use.local
   resolution: "@safe-global/test@workspace:config/test"
   dependencies:
-    "@safe-global/store": "npm:*"
+    "@safe-global/store": "workspace:^"
     jest: "npm:^29.7.0"
     jest-transform-stub: "npm:2.0.0"
     ts-jest: "npm:29.2.5"
@@ -7722,7 +7722,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@safe-global/utils@npm:*, @safe-global/utils@workspace:packages/utils":
+"@safe-global/utils@workspace:^, @safe-global/utils@workspace:packages/utils":
   version: 0.0.0-use.local
   resolution: "@safe-global/utils@workspace:packages/utils"
   dependencies:
@@ -7770,7 +7770,7 @@ __metadata:
     "@safe-global/safe-gateway-typescript-sdk": "npm:3.22.9"
     "@safe-global/safe-modules-deployments": "npm:^2.2.7"
     "@safe-global/store": "npm:*"
-    "@safe-global/test": "npm:*"
+    "@safe-global/test": "workspace:^"
     "@sentry/react": "npm:^7.91.0"
     "@sentry/types": "npm:^7.74.0"
     "@spindl-xyz/attribution-lite": "npm:^1.8.1"

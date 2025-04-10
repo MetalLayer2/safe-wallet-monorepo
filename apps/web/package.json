@@ -100,7 +100,7 @@
     "@next/mdx": "^15.0.4",
     "@openzeppelin/contracts": "^4.9.6",
     "@safe-global/safe-core-sdk-types": "^5.0.1",
-    "@safe-global/test": "*",
+    "@safe-global/test": "workspace:^",
     "@sentry/types": "^7.74.0",
     "@storybook/addon-designs": "^8.0.3",
     "@storybook/addon-essentials": "^8.0.6",
