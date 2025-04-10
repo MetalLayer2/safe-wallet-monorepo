@@ -7677,7 +7677,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@safe-global/store@workspace:^, @safe-global/store@workspace:packages/store":
+"@safe-global/store@npm:*, @safe-global/store@workspace:^, @safe-global/store@workspace:packages/store":
   version: 0.0.0-use.local
   resolution: "@safe-global/store@workspace:packages/store"
   dependencies:
@@ -7769,7 +7769,7 @@ __metadata:
     "@safe-global/safe-deployments": "npm:^1.37.31"
     "@safe-global/safe-gateway-typescript-sdk": "npm:3.22.9"
     "@safe-global/safe-modules-deployments": "npm:^2.2.7"
-    "@safe-global/store": "workspace:^"
+    "@safe-global/store": "npm:*"
     "@safe-global/test": "workspace:^"
     "@sentry/react": "npm:^7.91.0"
     "@sentry/types": "npm:^7.74.0"
