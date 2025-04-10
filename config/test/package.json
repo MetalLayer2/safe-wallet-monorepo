@@ -2,7 +2,7 @@
   "name": "@safe-global/test",
   "version": "0.0.0",
   "dependencies": {
-    "@safe-global/store": "workspace:^",
+    "@safe-global/store": "*",
     "jest": "^29.7.0",
     "ts-jest": "29.2.5"
   },
